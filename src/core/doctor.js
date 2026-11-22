@@ -129,7 +129,7 @@ function gpuCandidates(emulatorVersion) {
  *
  * 为什么必须改面板尺寸而不是运行时 wm size：模拟器的 LCD 是「物理面板」，
  * Qt 按面板尺寸开窗口并把画面贴在左上角。运行时改 wm size 只会改 Android 的
- * 逻辑分辨率，物理面板仍是竖的 —— 结果就是画面躺倒 90°、只占左上角一条、
+ * 逻辑分辨率，物理面板仍是竖的  -  结果就是画面躺倒 90°、只占左上角一条、
  * 四周大片黑边、点击坐标错位。只有把 hw.lcd.width/height 真的换成横屏并重启，
  * 才能得到「正立 + 铺满」的横屏。
  */
@@ -156,7 +156,7 @@ function shortPath(p) {
  * 但不会再因为「没设置」而用 4G/4核 硬编码把小内存机器搞崩。
  */
 /**
- * 「轻量容器」配额：只约束最影响主机手感的那一项 —— vCPU 数。
+ * 「轻量容器」配额：只约束最影响主机手感的那一项  -  vCPU 数。
  *
  * 旧逻辑给 16 核机器分 4 核，qemu 的 4 个 vCPU 线程会长期占满物理核，
  * Windows 桌面、鼠标、浏览器只能抢剩下的时间片，表现就是「一打开就卡」。
@@ -171,7 +171,7 @@ function liteProfile({ host = hostInfo(), engine = {} } = {}) {
   if (engine && engine.liteMode === false) return null;
   const cores = engine && engine.resourceMode === 'save'
     ? 2
-    // 老逻辑是 floor(核数/4) 再夹到 2~3 —— 8 核机器只给 2 个 vCPU，软件解码视频
+    // 老逻辑是 floor(核数/4) 再夹到 2~3  -  8 核机器只给 2 个 vCPU，软件解码视频
     // （红果/抖音这类）直接卡成幻灯片。改成「一半物理核、上限 4」：
     // 8 核给 4、4 核给 2，桌面仍有富余核，视频也够用。
     : clamp(Math.floor((host.cores || 2) / 2), 2, 4);
@@ -309,13 +309,13 @@ function planVariants(profile) {
   const safeGpu = gpus.find((g) => /software|swiftshader/.test(g)) || firstGpu;
   const ordered = [firstGpu, ...gpus.filter((g) => g !== firstGpu && /swiftshader|swangle/.test(g))].slice(0, 2);
   for (const gpu of ordered) {
-    out.push({ ...profile, gpu, label: `${gpu} / ${profile.accel === 'auto' ? '硬件加速' : '软件模拟'}`, wipe: false, snapshot: true });
+    out.push({ ...profile, gpu, label: `${gpu} / ${profile.accel === 'auto' ? 'Hardware acceleration' : 'Software emulation'}`, wipe: false, snapshot: true });
   }
   out.push({
     ...profile,
     gpu: safeGpu,
     accel: 'off',
-    label: '关闭加速的软件模拟（慢，但兼容性最好）',
+    label: 'Software emulation with acceleration off (slow, but most compatible)',
     wipe: false,
     snapshot: false,
   });
@@ -326,9 +326,9 @@ function planVariants(profile) {
     memoryMB: 2048,
     cores: 2,
     dataMB: Math.min(profile.dataMB, 2048),
-    label: '保守冷启动（最小内存 + 清快照）',
+    label: 'Conservative cold boot (minimum memory + clear snapshot)',
     // 这里**绝对不能** wipe：以前写的是 wipe:true，而磁盘写满时每次尝试都会失败，
-    // 于是连续重试把用户已装的应用和存档一起「清快照 + 清数据」了 ——
+    // 于是连续重试把用户已装的应用和存档一起「清快照 + 清数据」了  - 
     // 「磁盘满了，结果打开 ApkStart 应用全没了」就是这么发生的。
     // 需要重建 userdata 时由 ensureDataPartition 自己判断（它只在镜像损坏时重建），
     // 不靠启动参数里的 -wipe-data。
@@ -336,7 +336,7 @@ function planVariants(profile) {
     snapshot: false,
     lastResort: true,
   });
-  // 去重（相同 gpu/accel/wipe 组合不重复试）——但「最后一档」必须保留：
+  // 去重（相同 gpu/accel/wipe 组合不重复试） - 但「最后一档」必须保留：
   // 它是唯一「不加载快照」的方案，小内存机器上可能和前一档参数完全一样。
   const seen = new Set();
   return out.filter((v) => {
@@ -378,7 +378,7 @@ async function freeAdbPort(start = 5044) {
 
 /**
  * 配置指纹：只有「镜像 / 数据分区 / 引擎版本」变化才作废快照。
- * 故意不包含 GPU、加速方式、内存 —— 那些是自动重试会频繁切换的参数，
+ * 故意不包含 GPU、加速方式、内存  -  那些是自动重试会频繁切换的参数，
  * 若纳入会让每次重试都触发 -wipe-data，把用户已装的应用清空。
  */
 /**
@@ -386,7 +386,7 @@ async function freeAdbPort(start = 5044) {
  *
  * 刻意**不包含 dataMB**：数据分区调大以后旧快照照样能用（qemu 会按新的分区大小
  * 重新挂载），把它算进指纹的后果是「用户只想扩个容，结果快照作废 + 冷启动 +
- * 数据被删」—— 实测踩过一次，代价是整机应用全丢。
+ * 数据被删」 -  实测踩过一次，代价是整机应用全丢。
  */
 function snapshotKey(plan, imageDir) {
   return crypto.createHash('sha1').update([
@@ -397,7 +397,7 @@ function snapshotKey(plan, imageDir) {
 /**
  * 系统镜像的「身份」：只保留 `system-images/...` 之后的部分。
  *
- * 镜像放哪个盘都无所谓，同一套镜像换个目录不该被当成「换了镜像」——
+ * 镜像放哪个盘都无所谓，同一套镜像换个目录不该被当成「换了镜像」 - 
  * 否则用户把运行时从 C 盘挪到 D 盘（我们自己在设置里就建议这么做）以后，
  * AVD 里的 sysdir 与新路径不一致 → 判定镜像变了 → -wipe-data → 已装应用全丢。
  * 这个坑在实测中真的会踩到，所以两个地方（AVD 配置、快照指纹）都必须用身份而不是绝对路径。
@@ -417,52 +417,52 @@ const RULES = [
     // 与 CPU、内存、镜像都无关（同机换 -gpu software 往往就能过）。
     // 必须排在 GPU_INIT 前面：崩溃日志里通常也带着渲染初始化信息，先判崩溃更准。
     re: /emulator exit 3221225477|exit code 3221225477|0xC0000005|STATUS_ACCESS_VIOLATION/i,
-    title: '渲染后端崩溃（0xC0000005 访问冲突）',
-    hint: '已自动改用更保守的渲染后端重试，并记住这个后端下次不再先试。'
-      + '若反复出现，请更新显卡驱动；或在设置 → 性能与资源里把画质调低、关闭远程桌面/虚拟机显卡直通后再试。',
+    title: 'Rendering backend crashed (0xC0000005 access violation)',
+    hint: 'Automatically retried with a more conservative rendering backend, and remembered not to try this backend first next time. '
+      + 'If it keeps happening, update your graphics driver, or lower the quality in Settings - Performance and Resources and turn off Remote Desktop / virtual machine GPU passthrough, then try again.',
   },
   {
     code: 'GPU_INIT',
     // 只匹配「失败」语境：正常日志里也会出现 Vulkan/EGL/ANGLE 字样，不能误判为致命错误
     re: /Failed to initialize GL emulation|Could not initialize (OpenGL|emulated framebuffer)|Failed to create .*GLES|EGL_(BAD|NOT_INITIALIZED|CONTEXT_LOST)|Failed to (load|initialize) .*vulkan|vulkan.*(failed|error)|ANGLE.*(fail|error)/i,
-    title: '显卡渲染后端初始化失败',
-    hint: '已自动切换软件渲染重试。若仍失败，请更新显卡驱动，或关闭远程桌面/虚拟机显卡直通后再试。',
+    title: 'Graphics rendering backend failed to initialize',
+    hint: 'Automatically switched to software rendering and retried. If it still fails, update your graphics driver, or turn off Remote Desktop / virtual machine GPU passthrough and try again.',
   },
   {
     code: 'GPU_MODE',
     re: /Unknown option|invalid .*-gpu|Unrecognized .*gpu|Unsupported gpu/i,
-    title: '当前运行时不接受该 GPU 模式',
-    hint: '已自动按运行时版本挑选可用的 GPU 模式重试（老版本用 swiftshader_indirect，新版本用 software）。',
+    title: 'The current runtime does not accept this GPU mode',
+    hint: 'Automatically picked an available GPU mode for the runtime version and retried (older versions use swiftshader_indirect, newer versions use software).',
   },
   {
     code: 'ACCEL',
     re: /x86_64 emulation currently requires hardware acceleration|acceleration.*not (installed|available|supported)|WHPX.*(not|failed)|AEHD.*(not|failed)|ERROR_ACCESS_DENIED|加速.*不可用/i,
-    title: '硬件加速不可用',
-    hint: '已自动回退软件模拟（首次启动会明显变慢）。想要流畅可用，请在「Windows 功能」勾选「虚拟机平台」，或安装 AEHD 驱动后重启。',
+    title: 'Hardware acceleration is unavailable',
+    hint: 'Automatically fell back to software emulation (the first startup will be noticeably slower). For smooth use, tick Virtual Machine Platform in Windows Features, or install the AEHD driver and restart.',
   },
   {
     code: 'MEMORY',
     re: /Cannot allocate memory|not enough memory|commit charge|Failed to allocate|out of memory|内存不足/i,
-    title: '内存分配失败',
-    hint: '已自动下调分配给 Android 的内存与核心数。请关闭占内存的程序后重试。',
+    title: 'Memory allocation failed',
+    hint: 'Automatically reduced the memory and cores allocated to Android. Close memory-heavy programs and try again.',
   },
   {
     code: 'PORT_BUSY',
     re: /port.*(in use|busy)|Address already in use|bind.*failed|Failed to (setup|bind) .*console/i,
-    title: '模拟器端口被占用',
-    hint: '已自动换用空闲端口。若反复出现，请退出夜神/MuMu/蓝叠等模拟器，或重启电脑。',
+    title: 'The emulator port is in use',
+    hint: 'Automatically switched to a free port. If it keeps happening, exit other emulators such as Nox, MuMu or BlueStacks, or restart the computer.',
   },
   {
     code: 'AVD_LOCK',
     re: /already running|lock file|\.lock|AVD is in use|emulator is running/i,
-    title: '上次运行残留了锁文件',
-    hint: '已自动清理 AVD 锁文件并重新拉起。',
+    title: 'Lock files were left over from the last run',
+    hint: 'Automatically cleaned up the AVD lock files and started again.',
   },
   {
     code: 'IMAGE',
     re: /system\.img.*(missing|not found|corrupt)|kernel-ranchu.*(missing|not found)|invalid magic|Failed to open .*\.img|APEX.*(fail|error|loop)|boot loop|verity.*fail/i,
-    title: '系统镜像缺失或损坏 / 与旧用户数据不兼容',
-    hint: '已自动用干净的用户数据重新开机。若仍失败，请在「运行时」里删除镜像后重新下载。',
+    title: 'System image is missing or damaged / incompatible with old user data',
+    hint: 'Automatically booted again with clean user data. If it still fails, delete the image under Runtime and download it again.',
   },
   {
     code: 'DLL',
@@ -472,43 +472,43 @@ const RULES = [
     // VC++ 运行库确实缺失、杀毒隔离了运行时文件，三种都可能。原来一律断言
     // 「杀毒删了 / 缺 VC++」是照退出码静态猜的，会误导用户重装无用。
     // 真实缺哪个 DLL 要看 WER 的 FaultingModuleName；这里如实列为「待定位」。
-    title: '运行时依赖 DLL 加载失败（具体原因待定位）',
-    hint: '常见原因：商店版从只读目录启动子进程的路径限制、VC++ 运行库缺失、杀毒隔离了运行时文件。'
-      + '请打开内置手册 6.8 按步骤定位；不要只凭这一条就重装运行库。',
+    title: 'A runtime dependency DLL failed to load (exact cause still to be located)',
+    hint: 'Common causes: the Store edition starting a child process from a read-only folder, a missing VC++ runtime, or antivirus quarantining runtime files. '
+      + 'Open section 6.8 of the built-in manual and follow the steps to locate it; do not reinstall runtimes based on this alone.',
   },
   {
     code: 'DISK_FULL',
     re: /No space left|disk full|not enough space|磁盘空间不足/i,
-    title: '磁盘空间不足，无法启动安卓',
-    hint: '请把运行时目录（设置 → 系统集成 → 运行时数据目录）改到空间充足的盘，'
-      + '或在设置里关掉「保留快速启动快照」/ 调小数据分区。安卓数据不会被自动清除。',
+    title: 'Not enough disk space to start Android',
+    hint: 'Move the runtime folder (Settings - System Integration - Runtime data folder) to a drive with enough space, '
+      + 'or turn off Keep quick boot snapshot in Settings, or make the data partition smaller. Android data will not be cleared automatically.',
   },
   {
     code: 'NON_ASCII',
     re: /Unicode|non-ASCII|路径.*(无效|找不到)|cannot find the path/i,
-    title: '安装路径含中文或特殊字符',
-    hint: '已自动改用 Windows 短路径。若仍失败，请把 ApkStart 移到纯英文目录（如 C:\\ApkStart）。',
+    title: 'The install path contains Chinese or special characters',
+    hint: 'Automatically switched to a Windows short path. If it still fails, move ApkStart to a folder using only English characters (such as C:\\ApkStart).',
   },
   {
     // 上次被强制结束后 AVD 目录会留下 hardware-qemu.ini.lock / multiinstance.lock，
     // 模拟器一律拒绝启动，报出来的却是容易被误读成 CPU 问题的话。必须排在 CPU 规则前。
     code: 'AVD_LOCK',
     re: /Running multiple emulators with the same AVD|AVD .*is already running|hardware-qemu\.ini\.lock/i,
-    title: '上一次运行没有正常退出，残留了锁文件',
-    hint: 'ApkStart 会自动清掉残留锁并重试；若反复出现，请检查是否有别的模拟器正在用同一套运行时。',
+    title: 'The last run did not exit normally and left lock files behind',
+    hint: 'ApkStart will automatically clear the leftover locks and retry. If it keeps happening, check whether another emulator is using the same runtime.',
   },
   {
     code: 'CPU_FEATURE',
     re: /host doesn't support requested feature|CPUID.*not supported|unsupported CPU|missing.*(AVX|SSE4|xsave)/i,
-    title: 'CPU 缺少运行时要求的指令集',
-    hint: '这类提示在部分老 CPU 上只是警告、仍能开机；若确实起不来，请把「运行时」里的引擎更新到较旧兼容版本，或换一台支持 VT-x/AVX 的电脑。',
+    title: 'The CPU lacks an instruction set the runtime requires',
+    hint: 'On some old CPUs this message is only a warning and it can still boot. If it really cannot start, update the engine under Runtime to an older compatible version, or use a computer that supports VT-x/AVX.',
   },
 
   {
     code: 'SNAPSHOT',
     re: /snapshot|Quick Boot|ram\.img|Saving state/i,
-    title: '快速启动快照损坏',
-    hint: '已自动丢弃旧快照走冷启动；下一次正常退出会重新生成快照。',
+    title: 'The quick boot snapshot is damaged',
+    hint: 'Automatically discarded the old snapshot and cold booted; a new snapshot will be generated on the next normal exit.',
   },
 ];
 
@@ -520,16 +520,16 @@ function diagnose(lines) {
   }
   return {
     code: 'UNKNOWN',
-    title: '运行时未能完成开机',
-    hint: '已自动按多种参数组合重试。可点「导出诊断报告」把日志发给作者定位。',
+    title: 'The runtime could not finish booting',
+    hint: 'Automatically retried with several parameter combinations. You can click Export diagnostic report and send the log to the author for investigation.',
   };
 }
 
 /** 人类可读的一行摘要，放在设置页让高级用户知道自动选了什么 */
 function describeProfile(p) {
-  return `自动：${(p.memoryMB / 1024).toFixed(1)}GB 内存 · ${p.cores} 核 · ${p.gpu} 渲染 · `
-    + `${p.accelOk ? '硬件加速' : '软件模拟'} · ${p.snapshot ? '按需快照' : '冷启动'}`
-    + `${p.lite ? ' · 轻量容器' : ''} · 端口 ${p.port}`;
+  return `Automatic: ${(p.memoryMB / 1024).toFixed(1)} GB memory - ${p.cores} cores - ${p.gpu} rendering - `
+    + `${p.accelOk ? 'Hardware acceleration' : 'Software emulation'} - ${p.snapshot ? 'On-demand snapshot' : 'Cold boot'}`
+    + `${p.lite ? ' - Lightweight container' : ''} - Port ${p.port}`;
 }
 
 /** 导出诊断报告（纯文本，便于发邮件/贴 issue） */
@@ -539,24 +539,24 @@ function writeReport({ dataDir, profile, logLines = [], extra = {} }) {
   const file = path.join(dir, `diagnostic-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`);
   const d = diagnose(logLines);
   const body = [
-    'ApkStart 诊断报告',
-    `生成时间：${new Date().toLocaleString()}`,
+    'ApkStart Diagnostic Report',
+    `Generated: ${new Date().toLocaleString('en-US')}`,
     '',
-    '== 本机 ==',
+    '== This machine ==',
     JSON.stringify(hostInfo(), null, 2),
     '',
-    '== 自动配置 ==',
+    '== Automatic configuration ==',
     JSON.stringify(profile || {}, null, 2),
     describeProfile(profile || chooseProfile()),
     '',
-    '== 诊断 ==',
+    '== Diagnosis ==',
     `${d.code}：${d.title}`,
     d.hint,
     '',
-    '== 附加信息 ==',
+    '== Additional information ==',
     JSON.stringify(extra, null, 2),
     '',
-    '== 运行时日志（末尾 300 行）==',
+    '== Runtime log (last 300 lines) ==',
     ...(Array.isArray(logLines) ? logLines.slice(-300) : String(logLines || '').split('\n')),
   ].join('\n');
   fs.writeFileSync(file, body, 'utf8');

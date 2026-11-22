@@ -4,7 +4,7 @@
  *
  * 以前 app.log / emulator.log 是纯 append，长期使用会一直长：
  * emulator 每次开机的内核日志就有几十 KB，一天开关十几次、再加上 qemu 的
- * verbose 输出，几个月就是几百 MB —— 磁盘就是这么被悄悄吃掉的。
+ * verbose 输出，几个月就是几百 MB  -  磁盘就是这么被悄悄吃掉的。
  * 这里按大小滚动，只保留一份 .1.log 备份，上限由设置里的「日志上限」控制。
  */
 const fs = require('fs');

@@ -5,7 +5,7 @@
  * 三个形态都要照顾到：
  *   - 安装版（NSIS）：下载 `ApkStart-x.y.z-Setup.exe`，静默安装（/S）；
  *   - 轻量版（便携 zip，运行时按需下载）：下载 `ApkStart-vX-win64-portable.zip`，
- *     解压后覆盖程序目录 —— 运行时目录（%APPDATA%\apkstart\runtime）与已装应用、
+ *     解压后覆盖程序目录  -  运行时目录（%APPDATA%\apkstart\runtime）与已装应用、
  *     快照全都在用户目录里，替换程序文件不会动它们；
  *   - 完整版（便携但带 runtime）：同轻量版，只是目录里多了 resources\runtime。
  *
@@ -112,7 +112,7 @@ class Updater {
         || merged.assets.find((a) => /\.zip$/i.test(a.name) && !isRuntimePack(a)));
 
     // 增量资产：清单 + 代码包。两者都在、且本机 Electron 版本对得上时才可能走增量；
-    // 完整包始终作为兜底留在 asset 里——增量任何一步出问题都能无缝退回整包。
+    // 完整包始终作为兜底留在 asset 里 - 增量任何一步出问题都能无缝退回整包。
     const manifestAsset = pick(inc.MANIFEST_RE);
     const appAsset = pick(inc.APP_PACK_RE);
 
@@ -130,7 +130,7 @@ class Updater {
           size: asset.size,
           url: asset.url,
           // 同名资产在 GitHub / Gitee 都有：两个地址都带着，prepare() 里测速择快。
-          // sizes 是「每个地址各自的大小」——两个源压出来的字节数并不相同。
+          // sizes 是「每个地址各自的大小」 - 两个源压出来的字节数并不相同。
           urls: asset.urls,
           sizes: asset.sizes,
           source: asset.source,
@@ -161,7 +161,7 @@ class Updater {
    */
   async prepare(info) {
     const it = info || this.latest;
-    if (!it || !it.asset) throw new Error('这个版本没有可自动安装的安装包，请到 GitHub 发布页手动下载');
+    if (!it || !it.asset) throw new Error('This version has no package that can be installed automatically. Please download it manually from the GitHub releases page');
     const dir = path.join(this.updateDir, it.version);
     fs.mkdirSync(dir, { recursive: true });
 
@@ -176,7 +176,7 @@ class Updater {
       } catch (e) {
         this.onProgress({
           stage: 'download', percent: 1,
-          message: `增量更新不可用（${e.message}），改用完整包…`,
+          message: `Incremental update is unavailable (${e.message}). Using the full package instead...`,
         });
       }
     }
@@ -191,11 +191,11 @@ class Updater {
 
     // Gitee 附件单文件上限 100MB，所以发布时会把包切成 .part1/.part2。
     // 每个分片单独测速选源（可以一部分来自 Gitee、一部分来自 GitHub 镜像），
-    // 下完按顺序拼回整包 —— 对用户来说仍然只是「下载 + 解压」。
+    // 下完按顺序拼回整包  -  对用户来说仍然只是「下载 + 解压」。
     if (it.asset.parts && it.asset.parts.length) {
       await this._downloadParts(it.asset, file, conns, total);
     } else {
-      this.onProgress({ stage: 'download', percent: 1, message: `正在下载 ${it.asset.name}…` });
+      this.onProgress({ stage: 'download', percent: 1, message: `Downloading ${it.asset.name}...` });
       // 候选地址 = 源站 + 镜像前缀；先各下 256KB 实测速度，再拿最快的那个分块下载。
       // 这是「GitHub 直连几十 KB/s、镜像能跑几 MB/s」时唯一靠谱的选路方式：
       // 按域名猜没用，同一天不同时段差别很大。
@@ -218,7 +218,7 @@ class Updater {
           this.onProgress({
             stage: 'download',
             percent: Math.max(1, Math.min(99, pct)),
-            message: `下载中 ${mb}${sp}`,
+            message: `Downloading ${mb}${sp}`,
             speed: pr.speed,
           });
         },
@@ -228,20 +228,20 @@ class Updater {
     if (/\.zip$/i.test(file)) {
       const out = path.join(dir, 'payload');
       // issue #98：上一次已经下载+解压完成，但替换/重启没成功时，
-      // 直接复用这份载荷，绝不再下一遍 100MB —— 这正是「更新死循环」的来源。
+      // 直接复用这份载荷，绝不再下一遍 100MB  -  这正是「更新死循环」的来源。
       // 就绪标记由本函数写、替换脚本成功后清掉，所以只有完整解压过的载荷才会被复用。
       if (this._payloadReady(out, it.version)) {
-        this.onProgress({ stage: 'ready', percent: 100, message: '已有下载好的更新包，直接复用' });
+        this.onProgress({ stage: 'ready', percent: 100, message: 'An update package was already downloaded. Reusing it directly' });
         return { mode: 'zip', payload: out, version: it.version };
       }
       fs.rmSync(out, { recursive: true, force: true });
       fs.mkdirSync(out, { recursive: true });
       await this._extract(file, out);
       this._markPayloadReady(out, it.version);
-      this.onProgress({ stage: 'ready', percent: 100, message: '更新包已解压完成' });
+      this.onProgress({ stage: 'ready', percent: 100, message: 'Update package extracted' });
       return { mode: 'zip', payload: out, version: it.version };
     }
-    this.onProgress({ stage: 'ready', percent: 100, message: '安装包已下载完成' });
+    this.onProgress({ stage: 'ready', percent: 100, message: 'Install package downloaded' });
     return { mode: 'setup', payload: file, version: it.version };
   }
 
@@ -258,15 +258,15 @@ class Updater {
     const fetchAsset = async (asset, name, label) => {
       const target = path.join(dir, name);
       const ranked = await this.sources.rank(this.sources.candidates(asset), {}).catch(() => this.sources.candidates(asset));
-      this.onProgress({ stage: 'download', percent: 1, message: `正在获取${label}…` });
+      this.onProgress({ stage: 'download', percent: 1, message: `Fetching ${label}...` });
       await downloadAny(ranked, target, {});
       return target;
     };
 
-    const manifestFile = await fetchAsset(it.incremental.manifest, `manifest-${it.version}.json`, '更新清单');
+    const manifestFile = await fetchAsset(it.incremental.manifest, `manifest-${it.version}.json`, 'update manifest');
     const manifest = inc.parseManifest(fs.readFileSync(manifestFile, 'utf8'));
     if (String(manifest.version).replace(/^v/i, '') !== String(it.version).replace(/^v/i, '')) {
-      throw new Error('清单版本与发行版不一致');
+      throw new Error('The manifest version does not match the release version');
     }
     // 清单声明的 app 资产必须真的是这次 release 里那个（防止挂错旧包）
     const appAsset = it.assets && it.assets.find((a) => a && a.name === manifest.app.asset);
@@ -279,16 +279,16 @@ class Updater {
     });
     if (choice.mode !== 'app') return null;
 
-    const appFile = await fetchAsset(choice.appAsset, manifest.app.asset, '增量代码包');
+    const appFile = await fetchAsset(choice.appAsset, manifest.app.asset, 'incremental code package');
     const gotHash = await sha256File(appFile);
     if (String(gotHash).toLowerCase() !== String(manifest.app.sha256).toLowerCase()) {
-      throw new Error('增量代码包校验失败（sha256 不符）');
+      throw new Error('The incremental code package failed verification (sha256 mismatch)');
     }
 
     const payload = path.join(dir, 'app-payload');
     // 上次下载解压成功但替换失败：直接复用（和完整包的 .apkstart-ready 同理）
     if (this._payloadReady(payload, it.version)) {
-      this.onProgress({ stage: 'ready', percent: 100, message: '已有下载好的增量包，直接复用' });
+      this.onProgress({ stage: 'ready', percent: 100, message: 'An incremental package was already downloaded. Reusing it directly' });
       return { mode: 'app', payload, version: it.version, manifest };
     }
     fs.rmSync(payload, { recursive: true, force: true });
@@ -296,10 +296,10 @@ class Updater {
     await this._extract(appFile, payload);
     // 逐文件校验：下载被截断 / 镜像给了错文件都能在这里拦下
     const bad = await inc.verifyExtracted({ payload, files: manifest.app.files });
-    if (bad.length) throw new Error(`增量代码包有 ${bad.length} 个文件校验不通过`);
+    if (bad.length) throw new Error(`${bad.length} file(s) in the incremental code package failed verification`);
 
     this._markPayloadReady(payload, it.version, 'app');
-    this.onProgress({ stage: 'ready', percent: 100, message: '增量包已校验完成' });
+    this.onProgress({ stage: 'ready', percent: 100, message: 'Incremental package verified' });
     return { mode: 'app', payload, version: it.version, manifest };
   }
 
@@ -332,15 +332,15 @@ class Updater {
             this.onProgress({
               stage: 'download',
               percent: Math.max(1, Math.min(99, pct)),
-              message: `下载中 ${(got / 1048576).toFixed(1)} MB${total ? ` / ${(total / 1048576).toFixed(1)} MB` : ''}`
-                + `（第 ${part.index}/${asset.parts.length} 片）${sp}`,
+              message: `Downloading ${(got / 1048576).toFixed(1)} MB${total ? ` / ${(total / 1048576).toFixed(1)} MB` : ''}`
+                + ` (part ${part.index}/${asset.parts.length})${sp}`,
               speed: pr.speed,
             });
           },
         });
         const buf = fs.readFileSync(tmp);
         if (part.size && buf.length !== part.size) {
-          throw new Error(`分片 ${part.index} 大小不对（${buf.length} ≠ ${part.size}），已中止，可重试`);
+          throw new Error(`Part ${part.index} has the wrong size (${buf.length} != ${part.size}). Aborted; you can retry`);
         }
         fs.writeSync(fd, buf, 0, buf.length, doneBytes);
         doneBytes += buf.length;
@@ -350,7 +350,7 @@ class Updater {
       fs.closeSync(fd);
     }
     if (total && doneBytes !== total) {
-      throw new Error(`更新包拼装后大小不对（${doneBytes} ≠ ${total}），已中止，可重试`);
+      throw new Error(`The assembled update package has the wrong size (${doneBytes} != ${total}). Aborted; you can retry`);
     }
   }
 
@@ -370,7 +370,7 @@ class Updater {
           this.onProgress({
             stage: 'extract',
             percent: Math.min(99, Math.round((i / names.length) * 100)),
-            message: `正在解压 ${i}/${names.length}`,
+            message: `Extracting ${i}/${names.length}`,
           });
         }
       }
@@ -456,7 +456,7 @@ class Updater {
     ];
 
     if (job.mode === 'zip') {
-      // issue #98：旧脚本只测「目标 exe 是否存在」——它本来就存在，于是 copy
+      // issue #98：旧脚本只测「目标 exe 是否存在」 - 它本来就存在，于是 copy
       // 失败也被当成成功，接着删掉载荷、重启旧版本 → 下次开机又检测到更新 → 死循环。
       // 改成：复制前先把目标 exe 改名成 .old，复制后确认新 exe 真的落盘且字节数
       // 与载荷一致；失败则回滚 .old，并**保留载荷**交给下次启动续做。
@@ -492,7 +492,7 @@ class Updater {
       );
     } else if (job.mode === 'app') {
       // 增量替换：只覆盖 resources\app（我们的 JS / 资源 / node_modules）。
-      // Electron 外壳（exe / dll / locales）一律不动 —— 所以更新从 ~100MB 降到几 MB。
+      // Electron 外壳（exe / dll / locales）一律不动  -  所以更新从 ~100MB 降到几 MB。
       // 同样先改名备份 + 校验新 package.json 版本，失败回滚并保留载荷供续做。
       const appRel = path.join('resources', 'app');
       lines.push(
@@ -523,7 +523,7 @@ class Updater {
         `  Note 'app copy FAILED - rollback and keep payload'`,
         `  $applyOk = $false`,
         // 增量替换真失败了（不是瞬时占用）：留个标记，下次启动强制走完整包，
-        // 避免resumable 无限重放同一个坏载荷 —— 这是 issue #98 死循环的增量版。
+        // 避免resumable 无限重放同一个坏载荷  -  这是 issue #98 死循环的增量版。
         `  try { New-Item -ItemType File -Force -Path ${psq(path.join(this.updateDir, job.version, '.apkstart-force-full'))} | Out-Null } catch {}`,
         `  if (Test-Path $appDst) { try { Remove-Item -LiteralPath $appDst -Recurse -Force } catch {} }`,
         `  if ($hasBackup) { try { Move-Item -LiteralPath $backup -Destination $appDst -Force } catch {} }`,

@@ -1,471 +1,471 @@
-# ApkStart 产品使用手册与问题解决方案
+# ApkStart User Manual and Troubleshooting Guide
 
-> 版本：v0.6.3 · 平台：Windows 10/11 x64 · 更新：2026-11-19
+> Version: v0.6.3 · Platform: Windows 10/11 x64 · Updated: 2026-11-19
 >
-> ApkStart 是一个 Windows 上的安卓应用运行器：**让安卓应用像 Windows 原生软件一样安装、出现在桌面、双击即用。**
-> 本手册先教你怎么用，再按「症状」给出可照做的解决方案。所有步骤都对应软件里真实存在的按钮和菜单。
+> ApkStart is an Android app runner for Windows: **it lets Android apps install like native Windows software, appear on the desktop, and open with a double click.**
+> This manual first shows you how to use it, then gives solutions you can follow step by step, organized by symptom. Every step refers to a button or menu that actually exists in the app.
 
 ---
 
-## 目录
+## Table of Contents
 
-1. [30 秒看懂 ApkStart](#1-30-秒看懂-apkstart)
-2. [安装与首次启动](#2-安装与首次启动)
-3. [日常使用](#3-日常使用)
-4. [理解三个核心概念（看懂报错的关键）](#4-理解三个核心概念看懂报错的关键)
-5. [遇到问题先做这一步：体检与自动检测](#5-遇到问题先做这一步体检与自动检测)
-6. [常见问题解决方案](#6-常见问题解决方案)
-   - [6.1 提示「未启用硬件加速」 / 开机很慢](#61-提示未启用硬件加速--开机很慢)
-   - [6.2 安装失败（INSTALL_FAILED_*）](#62-安装失败install_failed_)
-   - [6.3 系统镜像没有 ARM 转译层 / ARM 应用装不上或闪退](#63-系统镜像没有-arm-转译层--arm-应用装不上或闪退)
-   - [6.4 adb 未授权（允许 USB 调试）](#64-adb-未授权允许-usb-调试)
-   - [6.5 双击图标没反应 / 一直转圈 / 出现带旋转按钮的窗口](#65-双击图标没反应--一直转圈--出现带旋转按钮的窗口)
-   - [6.6 其它启动类问题速查表](#66-其它启动类问题速查表)
-   - [6.7 应用没有声音 / 声音很小](#67-应用没有声音--声音很小)
-   - [6.8 商店版启动失败 / 0xC0000135（DLL 加载失败）](#68-商店版启动失败--0xc0000135dll-加载失败)
-7. [命令行参考](#7-命令行参考)
-8. [数据与目录说明](#8-数据与目录说明)
-9. [获取帮助与反馈](#9-获取帮助与反馈)
+1. [Understand ApkStart in 30 Seconds](#1-understand-apkstart-in-30-seconds)
+2. [Installation and First Launch](#2-installation-and-first-launch)
+3. [Everyday Use](#3-everyday-use)
+4. [Three Core Concepts (the Key to Understanding Errors)](#4-three-core-concepts-the-key-to-understanding-errors)
+5. [When Something Goes Wrong, Do This First: Health Check and Auto Detection](#5-when-something-goes-wrong-do-this-first-health-check-and-auto-detection)
+6. [Solutions to Common Problems](#6-solutions-to-common-problems)
+   - [6.1 "Hardware Acceleration Is Not Enabled" / Very Slow Startup](#61-hardware-acceleration-is-not-enabled--very-slow-startup)
+   - [6.2 Installation Failed (INSTALL_FAILED_*)](#62-installation-failed-install_failed_)
+   - [6.3 The System Image Has No ARM Translation Layer / ARM Apps Will Not Install or Crash](#63-the-system-image-has-no-arm-translation-layer--arm-apps-will-not-install-or-crash)
+   - [6.4 adb Not Authorized (Allow USB Debugging)](#64-adb-not-authorized-allow-usb-debugging)
+   - [6.5 Double Clicking the Icon Does Nothing / It Spins Forever / A Window With a Rotate Button Appears](#65-double-clicking-the-icon-does-nothing--it-spins-forever--a-window-with-a-rotate-button-appears)
+   - [6.6 Quick Reference Table for Other Startup Problems](#66-quick-reference-table-for-other-startup-problems)
+   - [6.7 Apps Have No Sound / Sound Is Very Quiet](#67-apps-have-no-sound--sound-is-very-quiet)
+   - [6.8 Store Edition Fails to Start / 0xC0000135 (DLL Failed to Load)](#68-store-edition-fails-to-start--0xc0000135-dll-failed-to-load)
+7. [Command Line Reference](#7-command-line-reference)
+8. [Data and Folders](#8-data-and-folders)
+9. [Getting Help and Sending Feedback](#9-getting-help-and-sending-feedback)
 
 ---
 
-## 1. 30 秒看懂 ApkStart
+## 1. Understand ApkStart in 30 Seconds
 
 ```
-桌面图标（真实应用图标 .lnk）
-      │ 双击
-      ▼
-ApkStart.exe --launch <包名>
-      │ 安卓运行时没开？→ 自动拉起（Android 14 模拟器，随包内置或首次下载）
-      ▼
-按系统解析出的启动入口打开应用（不是 APK 里写死的主 Activity）
-      ▼
-模拟器窗口 = 应用窗口（改标题、换图标、竖屏比例、全屏居中）
+Desktop icon (real app icon, .lnk)
+      | Double click
+      v
+ApkStart.exe --launch <package name>
+      | Android runtime not running? -> Start it automatically (Android 14 emulator, bundled or downloaded on first run)
+      v
+Open the app using the launch entry resolved by the system (not the main Activity hardcoded in the APK)
+      v
+Emulator window = app window (title changed, icon changed, portrait aspect ratio, fullscreen centered)
 ```
 
-**它的特点**
+**Its features**
 
-- 🖱️ **双击 .apk 即安装**：在资源管理器里注册文件关联后，双击 APK → 自动解析 → 安装 → 生成桌面图标。
-- 🧩 **每个应用一个桌面图标**：图标从 APK 内部离线提取，双击图标 = 直接进应用。
-- 🪟 **应用就是一个窗口**：原生渲染，全屏铺满屏幕高度并居中，窗口模式可拖动缩放，每个应用单独记忆尺寸。
-- 🔍 **能被 Windows 搜到**：桌面 + 开始菜单（`程序\ApkStart\`）双快捷方式。
-- 📁 **数据互通**：`%USERPROFILE%\ApkStartShared` ↔ 安卓内 `/sdcard/ApkStartShared` 双向同步。
-- 🪶 **自带运行时**：不依赖你机器上装的 MuMu / 雷电 / WSA 等任何模拟器。
+- **Double click an .apk to install it**: after the file association is registered in Explorer, double clicking an APK parses it, installs it, and creates a desktop icon automatically.
+- **One desktop icon per app**: icons are extracted offline from inside the APK. Double clicking an icon goes straight into the app.
+- **The app is a window**: native rendering, fullscreen fills the height of the screen and is centered, windowed mode can be dragged and resized, and each app remembers its own size.
+- **Searchable in Windows**: shortcuts in both places, on the desktop and in the Start menu (`Programs\ApkStart\`).
+- **Shared data**: `%USERPROFILE%\ApkStartShared` <-> Android `/sdcard/ApkStartShared`, synced in both directions.
+- **Runtime included**: it does not depend on any emulator installed on your machine, such as MuMu, LDPlayer, or WSA.
 
-> 注：本项目为早期版本，作者业余时间维护，开源免费、无广告。遇到问题是正常的，本手册就是为此准备的。
+> Note: this project is at an early stage. The author maintains it in spare time. It is open source, free, and has no ads. Running into problems is normal, and that is what this manual is for.
 
 ---
 
-## 2. 安装与首次启动
+## 2. Installation and First Launch
 
-### 2.1 选择适合你的版本
+### 2.1 Choose the Edition That Suits You
 
-两个源内容一致，国内建议用 Gitee：
+Both sources have identical content. Gitee is recommended inside China:
 
-- GitHub：`github.com/RoutineMiku/apkstart/releases`
-- Gitee：`gitee.com/daily-miku/apkstart/releases`（国内直连快得多）
+- GitHub: `github.com/RoutineMiku/apkstart/releases`
+- Gitee: `gitee.com/daily-miku/apkstart/releases` (much faster with a direct connection inside China)
 
-| 形态 | 文件名 | 什么时候选 |
+| Form | File name | When to choose it |
 |---|---|---|
-| **商店版** | `ApkStart_<四段版本>_x64.msix` | 从 Microsoft Store 安装。内置完整运行时，装完不联网，更新交给商店 |
-| **完整便携版** | `ApkStart-v*-win64-full.zip`（约 830 MB，解压 ~1.3 GB） | 不想装、也不想等下载：解压即用，运行时全在包里 |
-| **安装版** | `ApkStart-v*-Setup.exe`（约 1.3 GB） | 想要桌面/开始菜单快捷方式和卸载项 |
-| **轻量便携版** | `ApkStart-v*-win64-portable.zip`（96 MiB，解压 ~227 MB） | 只想先试试，首次启动再联网下载运行时 |
+| **Store edition** | `ApkStart_<four-part version>_x64.msix` | Install from the Microsoft Store. Includes the full runtime, works offline after installation, updates are handled by the Store |
+| **Full portable edition** | `ApkStart-v*-win64-full.zip` (about 830 MB, about 1.3 GB extracted) | You do not want to install or wait for a download: extract and use it, the runtime is all in the package |
+| **Installer edition** | `ApkStart-v*-Setup.exe` (about 1.3 GB) | You want desktop and Start menu shortcuts and an uninstall entry |
+| **Lightweight portable edition** | `ApkStart-v*-win64-portable.zip` (96 MiB, about 227 MB extracted) | You just want to try it first; the runtime is downloaded online on first launch |
 
-> ⚠️ **务必用最新版（当前 0.6.3）**。旧版（0.5.x 及更早）要么没有内置运行时、每次启动去找/下 1.5 GB 运行时，要么默认用嵌入窗口——这正是「很慢、打不开、出来一个带旋转按钮的窗口」的典型来源。如果你是从旧版升级，请确认桌面图标指向的是新版程序目录。
+> Warning: **always use the latest version (currently 0.6.3)**. Old versions (0.5.x and earlier) either have no bundled runtime and look for or download a 1.5 GB runtime on every launch, or use an embedded window by default. That is exactly the typical source of "very slow, will not open, a window with a rotate button appears". If you upgraded from an old version, make sure the desktop icon points to the new program folder.
 
-### 2.2 首次启动会发生什么
+### 2.2 What Happens on First Launch
 
-1. **（仅轻量版）下载运行时**：adb、Android Emulator、Android 14 系统镜像，官方源实测 10+ MB/s，8 线程分块 + 断点续传。完整版 / 商店版跳过此步。
-2. **首次展开镜像**：xz 镜像展开到 `%APPDATA%\apkstart\system-images`（约 20 秒，只做一次）。
-3. **首次造 `/data`**：ApkStart 自己生成带加密和 SELinux 标签的 ext4 用户数据（官方镜像里只是 1 MB 占位）。
-4. **自动开机**：之后点应用只剩一次 `am start`，冷启动约 23 秒，命中快照约 10 秒。
+1. **(Lightweight edition only) Download the runtime**: adb, Android Emulator, and the Android 14 system image. Measured at 10+ MB/s from the official source, with 8 threaded chunks and resumable downloads. The full and Store editions skip this step.
+2. **Extract the image for the first time**: the xz image is extracted to `%APPDATA%\apkstart\system-images` (about 20 seconds, done only once).
+3. **Create `/data` for the first time**: ApkStart generates ext4 user data with encryption and SELinux labels itself (the official image only has a 1 MB placeholder).
+4. **Automatic startup**: after that, opening an app is just one `am start`. A cold start takes about 23 seconds, and about 10 seconds when a snapshot is hit.
 
-> 首次启动慢是正常的，属"一次性成本"。之后再用就是秒进。
-
----
-
-## 3. 日常使用
-
-### 3.1 安装应用
-
-三种方式任选：
-
-- **双击 APK 文件**（先注册关联：设置 → 系统集成 → 关联 .apk 文件）；
-- 主界面里选「安装应用」；
-- 命令行：`ApkStart.exe <路径\to.apk>`。
-
-支持 `.apks` / `.xapk` 拆分包（自动用 `install-multiple`）。装完自动生成桌面 + 开始菜单快捷方式。
-
-### 3.2 打开应用
-
-双击桌面图标即可。所有应用共用同一个运行时，所以**第二个应用几乎瞬时启动**。
-
-### 3.3 窗口与显示
-
-| 操作 | 方法 |
-|---|---|
-| 全屏 / 窗口切换 | `F11` 或右键托盘菜单。全屏只放大窗口、不改画面比例 |
-| 旋转横竖屏 | `Ctrl+Alt+R`（全局）或标题栏旋转按钮；方向会被这个应用记住 |
-| 自动全屏 | 设置 → 显示与窗口 → 自动全屏（配合"强制方向"效果最好） |
-| 强制横屏/竖屏 | 设置 → 显示与窗口 → 屏幕方向 |
-
-> 只有"面板方向和应用方向不一致"的那一次才会重启运行时（约 40 秒，标题栏会给提示），同方向的应用之后都秒进。
-
-### 3.4 快捷键
-
-| 按键 | 作用 |
-|---|---|
-| `F11` | 全屏 / 窗口模式切换 |
-| `Ctrl+Alt+R` | 旋转当前应用横竖屏 |
-| `Ctrl+R` | 壳窗口内旋转（原生窗口模式下请用 `Ctrl+Alt+R`） |
-
-### 3.5 文件互通（Windows ↔ 安卓）
-
-本机 `%USERPROFILE%\ApkStartShared` 与安卓内 `/sdcard/ApkStartShared` 秒级双向同步。
-入口：设置 → 集成与文件 → 文件互通（可"立即同步"或"打开目录"）。
-
-### 3.6 设置页导航
-
-从 0.6.0 起分八类，顶部有搜索框（输入"横屏""内存""代理"等关键词，跨分类命中）：
-
-| 分类 | 主要内容 |
-|---|---|
-| 常用与安装 | 运行时与环境、一键完成、开机自启、磁盘占用与清理 |
-| 显示与窗口 | 显示模式、自动全屏、屏幕方向、平板排版、窗口承载方式 |
-| 操作与输入 | 鼠标键位、键盘映射 |
-| 性能与资源 | 资源策略、画质、数据分区、系统语言、快照、开机预热 |
-| 网络与下载 | 更新与下载源、加速镜像、下载线程数 |
-| 诊断与修复 | 本机体检、驱动/兼容补丁、自动检测 |
-| 集成与文件 | 桌面与应用、文件互通、系统集成 |
-| 更新与关于 | 软件更新、关于 |
-| 实验室 | Windows 原生多窗口多开（实验性）、后台保留数 |
-
-> **实验室 · 多开（实验性）**：打开后，新应用不再强制关闭上一个，多个应用可驻留后台、随时切回且保留登录态。受限于安卓运行时只有一个模拟器窗口，同一时刻仍只有一个应用画面在前台显示，并非真正并排多窗口；开启会增加内存占用。默认关闭，追求稳定可忽略它。
-
-### 3.7 在线更新
-
-设置 → 更新与关于 → 检查更新，或托盘右键 → 检查更新。更新链路现测现选最快的源（GitHub / Gitee / 镜像），分块并行下载，失败自动换源。更新不会丢运行时、已装应用和快照。
-
-新版便携版支持**增量更新**：每次发版会额外发布一份「代码清单」和一个只含程序代码的小包（几 MB，整个安装包约 100 MB）。如果你的 Electron 外壳版本没变，更新只下载这个小包、逐个文件校验后替换程序代码，几秒就好；外壳版本变了、清单缺失或任何校验不通过，会自动退回下载完整包，不会把程序更新坏。商店版仍由 Microsoft Store 负责更新。
-
-> 说明：只有用「检查更新」从 GitHub / Gitee 装便携版的用户走增量；从微软商店装的走 Store 通道。增量对已装应用、安卓数据、运行时和快照都没有影响。
+> A slow first launch is normal. It is a one time cost. After that, apps open in seconds.
 
 ---
 
-## 4. 理解三个核心概念（看懂报错的关键）
+## 3. Everyday Use
 
-大部分"诡异问题"，根源都在下面三样东西之一。花一分钟看懂，后面排查就顺了。
+### 3.1 Installing Apps
 
-### 4.1 运行时 / 系统镜像
+Choose any of the three methods:
 
-ApkStart 不是在模拟一个"空安卓"，而是加载一个**完整的 Android 14 系统镜像**当底座。
-0.6.3 只有**一个通用镜像**（Google Play x86_64），x86 和 ARM 应用都靠它跑——不再像老版本那样分"AOSP 镜像 / 兼容镜像"两套。
+- **Double click the APK file** (register the association first: Settings, System Integration, Associate .apk Files);
+- Choose "Install App" in the main window;
+- Command line: `ApkStart.exe <path\to.apk>`.
 
-- 镜像缺失 / 损坏 / 与旧用户数据不兼容 → 开机失败、卡在引导、反复重启。
-- 用户数据（`/data`）是薄差分层，系统镜像全机共享一份。
+Split packages in `.apks` / `.xapk` form are supported (using `install-multiple` automatically). After installation, desktop and Start menu shortcuts are created automatically.
 
-### 4.2 硬件加速
+### 3.2 Opening Apps
 
-模拟器要跑得快，需要 CPU 虚拟化加速。Windows 上只有两条路：
+Just double click the desktop icon. All apps share the same runtime, so **the second app starts almost instantly**.
 
-| 方式 | 是什么 | 谁需要管理员 | 装完要重启吗 |
+### 3.3 Window and Display
+
+| Action | Method |
+|---|---|
+| Switch between fullscreen and windowed | `F11` or the tray right click menu. Fullscreen only enlarges the window and does not change the aspect ratio of the picture |
+| Rotate between portrait and landscape | `Ctrl+Alt+R` (global) or the rotate button in the title bar; the orientation is remembered for that app |
+| Automatic fullscreen | Settings, Display and Window, Automatic Fullscreen (works best together with "Force Orientation") |
+| Force landscape or portrait | Settings, Display and Window, Screen Orientation |
+
+> The runtime is restarted only on the one occasion when "the panel orientation and the app orientation do not match" (about 40 seconds, and the title bar shows a hint). After that, apps with the same orientation open in seconds.
+
+### 3.4 Keyboard Shortcuts
+
+| Keys | Action |
+|---|---|
+| `F11` | Switch between fullscreen and windowed mode |
+| `Ctrl+Alt+R` | Rotate the current app between portrait and landscape |
+| `Ctrl+R` | Rotate inside the shell window (in native window mode, use `Ctrl+Alt+R`) |
+
+### 3.5 File Sharing (Windows <-> Android)
+
+`%USERPROFILE%\ApkStartShared` on this machine and `/sdcard/ApkStartShared` in Android are synced in both directions within seconds.
+Entry point: Settings, Integration and Files, File Sharing (you can "Sync Now" or "Open Folder").
+
+### 3.6 Settings Page Navigation
+
+Since 0.6.0 the settings are divided into categories, with a search box at the top (enter keywords such as "landscape", "memory", or "proxy" to match across categories):
+
+| Category | Main contents |
+|---|---|
+| Common and Installation | Runtime and environment, one click completion, start on boot, disk usage and cleanup |
+| Display and Window | Display mode, automatic fullscreen, screen orientation, tablet layout, how windows are hosted |
+| Controls and Input | Mouse buttons, keyboard mapping |
+| Performance and Resources | Resource policy, graphics quality, data partition, system language, snapshots, startup warmup |
+| Network and Downloads | Update and download sources, acceleration mirrors, number of download threads |
+| Diagnostics and Repair | Machine health check, drivers and compatibility patches, auto detection |
+| Integration and Files | Desktop and apps, file sharing, system integration |
+| Updates and About | Software updates, About |
+| Lab | Native Windows multi window multi instance (experimental), number kept in background |
+
+> **Lab, Multi Instance (experimental)**: when this is on, a new app no longer forces the previous one to close. Multiple apps can stay in the background, you can switch back to them at any time, and login state is kept. Because the Android runtime has only one emulator window, only one app picture is shown in the foreground at a time. It is not true side by side multi window, and turning it on increases memory use. It is off by default. If you want stability, you can ignore it.
+
+### 3.7 Online Updates
+
+Settings, Updates and About, Check for Updates, or right click the tray icon and choose Check for Updates. The update path tests the sources live and picks the fastest one (GitHub / Gitee / mirror), downloads in parallel chunks, and switches source automatically on failure. Updating does not lose the runtime, installed apps, or snapshots.
+
+Newer portable editions support **incremental updates**: each release also publishes a "code manifest" and a small package containing only program code (a few MB, while the whole installer is about 100 MB). If the version of your Electron shell has not changed, the update downloads only this small package, verifies files one by one, and replaces the program code, which takes a few seconds. If the shell version changed, the manifest is missing, or any verification fails, it falls back automatically to downloading the full package, so an update cannot break the program. The Store edition is still updated by the Microsoft Store.
+
+> Note: incremental updates apply only to portable edition users who use "Check for Updates" to install from GitHub / Gitee. Users who installed from the Microsoft Store use the Store channel. Incremental updates have no effect on installed apps, Android data, the runtime, or snapshots.
+
+---
+
+## 4. Three Core Concepts (the Key to Understanding Errors)
+
+Most "strange problems" have their root in one of the three things below. Spend a minute understanding them and troubleshooting afterwards becomes much easier.
+
+### 4.1 Runtime / System Image
+
+ApkStart does not emulate an "empty Android". It loads a **complete Android 14 system image** as the base.
+Version 0.6.3 has only **one universal image** (Google Play x86_64), and both x86 and ARM apps run on it. It no longer splits into two sets, an "AOSP image / compatibility image", as old versions did.
+
+- Image missing, damaged, or incompatible with old user data leads to startup failure, getting stuck at boot, or repeated restarts.
+- User data (`/data`) is a thin differential layer, and one system image is shared by the whole machine.
+
+### 4.2 Hardware Acceleration
+
+To run fast, the emulator needs CPU virtualization acceleration. On Windows there are only two routes:
+
+| Method | What it is | Who needs administrator rights | Restart needed after installing |
 |---|---|---|---|
-| **WHPX** | Windows 自带功能"Windows 虚拟机监控程序平台"（HypervisorPlatform） | 开此功能时 | 要 |
-| **AEHD** | Google 自家内核驱动 | 装驱动时 | 不用 |
+| **WHPX** | The built in Windows feature "Windows Hypervisor Platform" (HypervisorPlatform) | When enabling this feature | Yes |
+| **AEHD** | Google's own kernel driver | When installing the driver | No |
 
-**没有加速也能跑**（纯软件模拟 TCG），只是开机慢到几分钟、画面易掉帧——这是"慢"，不是"启动失败"。ApkStart 会自动回退，并且按"渲染后端 → 加速方式 → 内存/冷启动"最多 4 组参数自动重试。
+**It can run without acceleration** (pure software emulation, TCG). Startup just takes minutes and the picture drops frames easily. That is "slow", not "failed to start". ApkStart falls back automatically, and retries automatically with up to 4 sets of parameters, in the order "rendering backend, acceleration method, memory and cold start".
 
-> 别把 **VirtualMachinePlatform**（WSL2 用的）当成加速开关。模拟器要的是 **HypervisorPlatform**。只开前者，`emulator -accel-check` 依然说不可用。
+> Do not treat **VirtualMachinePlatform** (used by WSL2) as the acceleration switch. The emulator needs **HypervisorPlatform**. If you enable only the former, `emulator -accel-check` will still say it is unavailable.
 
-### 4.3 ARM 转译层
+### 4.3 ARM Translation Layer
 
-绝大多数国产安卓应用只提供 **ARM 原生库**（arm64-v8a / armeabi-v7a），而系统镜像是 **x86_64** 的——需要一个"翻译层"把 ARM 指令转给 x86 CPU。0.6.3 的通用镜像内置了新版 `ndk_translation` 翻译层，所以装 ARM 应用通常无需任何设置。
+Most Android apps from China provide only **ARM native libraries** (arm64-v8a / armeabi-v7a), while the system image is **x86_64**, so a "translation layer" is needed to translate ARM instructions for the x86 CPU. The universal image in 0.6.3 includes the new `ndk_translation` translation layer, so installing ARM apps usually needs no settings at all.
 
-- 首次遇到 ARM 应用时，若翻译层组件还没就位，ApkStart 会自动补齐兼容镜像并重启运行时重试（见 6.3）。
-- 老镜像（API 30）对新版翻译层有兼容问题（如字节系应用触发 `DoBadTrampoline` SIGABRT），Android 14 镜像已修复。
+- When an ARM app is met for the first time, if the translation layer components are not in place yet, ApkStart completes the compatibility image automatically and restarts the runtime to retry (see 6.3).
+- Old images (API 30) have compatibility problems with the new translation layer (for example, ByteDance apps triggering `DoBadTrampoline` SIGABRT). The Android 14 image has fixed this.
 
 ---
 
-## 5. 遇到问题先做这一步：体检与自动检测
+## 5. When Something Goes Wrong, Do This First: Health Check and Auto Detection
 
-在翻本手册之前，先让软件自己查一遍——大多数问题它能自动修。
+Before going through this manual, let the app check itself first. It can fix most problems automatically.
 
-### 5.1 本机体检 · 自动配置
+### 5.1 Machine Health Check and Automatic Configuration
 
-位置：设置 → 诊断与修复 → **开始体检**
+Location: Settings, Diagnostics and Repair, **Start Health Check**
 
-- 查什么：CPU 虚拟化（VT-x/SVM）是否开、Hyper-V/虚拟机监控程序平台是否可用、显卡/显存/驱动、内存、系统版本、`emulator -accel-check`、AEHD 驱动。
-- 点「**应用推荐配置**」自动写安全项：内存 / 核心数 / 渲染分辨率 / 画质 / 无加速时强制软件模拟，并固化成一份本机驱动，以后自动套用。
-- 结果分级：`ok`（正常）/ `warn`（能用但建议优化）/ `bad`（不处理跑不起来）。每条都有颜色和说明。
+- What it checks: whether CPU virtualization (VT-x/SVM) is on, whether Hyper-V and the Windows Hypervisor Platform are available, graphics card, video memory and driver, memory, system version, `emulator -accel-check`, and the AEHD driver.
+- Click "**Apply Recommended Configuration**" to write the safe items automatically: memory, number of cores, rendering resolution, graphics quality, and forcing software emulation when there is no acceleration. It is saved as a machine profile and applied automatically in future.
+- Result levels: `ok` (normal), `warn` (usable but optimization is recommended), `bad` (will not run if not handled). Each item has a color and an explanation.
 
-需要你亲自做的只有两类：
-- **BIOS 虚拟化**：重启进 BIOS → 打开 Intel VT-x / AMD SVM → Enabled（这一步软件无法代劳）。
-- **Windows 功能 / 加速驱动**：见 6.1。
+There are only two kinds of things you need to do yourself:
+- **BIOS virtualization**: restart, enter the BIOS, turn on Intel VT-x / AMD SVM, set it to Enabled (the app cannot do this step for you).
+- **Windows features / acceleration driver**: see 6.1.
 
-### 5.2 自动检测（自动 debug）
+### 5.2 Auto Detection (Automatic Debugging)
 
-位置：设置 → 诊断与修复 →「自动检测 · 智能诊断」
+Location: Settings, Diagnostics and Repair, "Auto Detection, Smart Diagnostics"
 
-后台每 10 分钟把机器查一遍，按六类列问题，每条可**一键处理**（重启运行时、清锁、清孤儿进程、作废快照、清理磁盘、重置安卓网络……），修完自动复检：
+In the background it checks the machine every 10 minutes, lists problems in six categories, and each item can be **handled with one click** (restart the runtime, clear locks, clear orphan processes, invalidate snapshots, clean up disk, reset the Android network, and so on). After a fix it rechecks automatically:
 
-| 分类 | 覆盖的问题 |
+| Category | Problems covered |
 |---|---|
-| 运行时 | 上次启动失败的真实原因、引导卡死、残留锁文件、孤儿模拟器进程、快照空壳、没有硬件加速 |
-| 设备连接 | adb 未授权、offline、运行时在跑但 adb 看不到设备 |
-| 存储 | 磁盘余量、数据分区配置与实际不符、共享目录不可写 |
-| 设置 | 屏幕方向与物理面板冲突、独立窗口下自动全屏不生效 |
-| 网络/日志 | 安卓侧没网、下载源不通、最近日志里的错误 |
+| Runtime | The real cause of the last startup failure, boot stuck, leftover lock files, orphan emulator processes, empty snapshot shells, no hardware acceleration |
+| Device connection | adb not authorized, offline, the runtime is running but adb cannot see the device |
+| Storage | Free disk space, the data partition configuration does not match reality, the shared folder is not writable |
+| Settings | Screen orientation conflicts with the physical panel, automatic fullscreen does not take effect in a separate window |
+| Network and logs | No network on the Android side, download sources unreachable, errors in recent logs |
 
-> 两条原则：探测失败不会被当成问题（拿不到状态就报"不知道"，绝不瞎报）；同一个老问题不重复打扰。
+> Two principles: a failed probe is not treated as a problem (when the state cannot be obtained it reports "unknown", and never reports blindly); and the same old problem does not disturb you repeatedly.
 
-### 5.3 导出诊断报告
+### 5.3 Export a Diagnostic Report
 
-位置：设置 → 诊断与修复 → **导出诊断报告**（或系统集成页同名按钮）
+Location: Settings, Diagnostics and Repair, **Export Diagnostic Report** (or the button with the same name on the System Integration page)
 
-报告是纯文本，含本机配置、自动选中的启动参数、日志和诊断结论。反馈问题时附上它，能大幅加快定位。
+The report is plain text and contains the machine configuration, the automatically selected startup parameters, logs, and diagnostic conclusions. Attaching it when you report a problem greatly speeds up locating the cause.
 
-### 5.4 内置使用手册与自动教程
+### 5.4 Built In User Manual and Automatic Tutorials
 
-从 0.6.3 起，本手册已经**嵌入软件**：主界面标题栏的「?」按钮、设置 → 关于里的「打开使用手册」都能直接打开，可搜索、滚动、打印/存 PDF。打开时会自动定位到与当前故障相关的章节。
+Since 0.6.3, this manual is **embedded in the app**: the "?" button in the title bar of the main window, and "Open the User Manual" in Settings, About, both open it directly. It can be searched, scrolled, and printed or saved as PDF. When opened, it goes automatically to the chapter related to the current fault.
 
-自动检测/修复也会把教程送到你面前：
+Auto detection and repair also bring the tutorial to you:
 
-- 自动检测发现问题时，问题条目右侧有「教程」按钮，点开直达对应章节；
-- 硬件加速、安装失败、ARM 转译层、adb 授权、无声音等问题**自动修复失败后，会自动弹出相应教程**，不用再来这里翻；
-- 同一个教程在一次运行里只自动弹一次，不会反复打断你。
+- When auto detection finds a problem, there is a "Tutorial" button on the right of the problem item. Clicking it goes straight to the matching chapter;
+- For problems such as hardware acceleration, installation failure, the ARM translation layer, adb authorization, and no sound, **when automatic repair fails, the matching tutorial pops up automatically**, so you do not need to come here and search;
+- The same tutorial pops up automatically only once in one run, so it will not interrupt you repeatedly.
 
-> 手动打开：标题栏 `?` 按钮。想临时关掉自动弹出，可在自动检测设置里关闭通知，教程仍可从问题条目的「教程」按钮打开。
+> Open it manually: the `?` button in the title bar. If you want to turn off automatic popups temporarily, you can turn off notifications in the auto detection settings. The tutorial can still be opened from the "Tutorial" button on a problem item.
 
 ---
 
-## 6. 常见问题解决方案
+## 6. Solutions to Common Problems
 
-### 6.1 提示「未启用硬件加速」 / 开机很慢
+### 6.1 "Hardware Acceleration Is Not Enabled" / Very Slow Startup
 
-**症状**：设置/诊断里提示"当前没有硬件加速""硬件加速不可用"；开机慢到几分钟，画面掉帧。
+**Symptoms**: Settings or Diagnostics says "there is currently no hardware acceleration" or "hardware acceleration is unavailable"; startup takes minutes and the picture drops frames.
 
-**先明确**：这通常是"慢"，不是"打不开"。ApkStart 已自动回退软件模拟。想要流畅才需要开加速。
+**Be clear first**: this is usually "slow", not "will not open". ApkStart has already fallen back to software emulation automatically. You only need to enable acceleration if you want it to be smooth.
 
-**按版本处理：**
+**Handle it by edition:**
 
-- **安装版 / 便携版**：设置 → 诊断与修复 → 本机体检 → 找到「未启用硬件加速」→ 点**修复**。会弹一次 UAC，自动开启 WHPX；若开不起来（系统不支持或你点了否），会自动改装 AEHD 驱动。
-- **微软商店（MSIX）版**：商店应用**不能自行提权**，点「修复」会打开「启用或关闭 Windows 功能」对话框：
-  1. 勾选 **「Windows 虚拟机监控程序平台」（HypervisorPlatform）**；
-  2. 确定后**重启电脑**一次。
+- **Installer / portable edition**: Settings, Diagnostics and Repair, Machine Health Check, find "Hardware acceleration is not enabled", and click **Repair**. One UAC prompt appears, and WHPX is enabled automatically. If it cannot be enabled (the system does not support it, or you clicked No), it installs the AEHD driver instead automatically.
+- **Microsoft Store (MSIX) edition**: Store apps **cannot elevate themselves**. Clicking "Repair" opens the "Turn Windows features on or off" dialog:
+  1. Check **"Windows Hypervisor Platform" (HypervisorPlatform)**;
+  2. After confirming, **restart the computer** once.
 
-  也可以用**管理员 PowerShell** 执行：
+  You can also run this in an **administrator PowerShell**:
 
   ```powershell
   dism /online /enable-feature /featurename:HypervisorPlatform /all /norestart
   dism /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
   ```
 
-> 两个坑：① 别只开 VirtualMachinePlatform，那不是模拟器要的加速；② 若 BIOS 里 VT-x/SVM 没开，先按 5.1 进 BIOS 打开，否则系统功能开了也没用。
-> 显卡驱动超过 3 年的，去厂商官网更新；但 ApkStart 不会自动装驱动（装错更糟）。某些老显卡/核显需要走兼容补丁，见设置 → 诊断与修复 → 驱动 · 兼容补丁。
+> Two pitfalls: 1. Do not enable only VirtualMachinePlatform. That is not the acceleration the emulator needs. 2. If VT-x/SVM is not enabled in the BIOS, first enter the BIOS and enable it as in 5.1, otherwise enabling the system feature is useless.
+> If the graphics driver is more than 3 years old, update it from the vendor's official website. ApkStart does not install drivers automatically (installing the wrong one is worse). Some old graphics cards and integrated graphics need a compatibility patch. See Settings, Diagnostics and Repair, Drivers and Compatibility Patches.
 
 ---
 
-### 6.2 安装失败（INSTALL_FAILED_*）
+### 6.2 Installation Failed (INSTALL_FAILED_*)
 
-**症状**：装应用时报错，文案通常以"安装失败："开头，末尾带一个 `INSTALL_*` 错误码。
+**Symptoms**: an error is reported when installing an app. The text usually starts with "Installation failed:" and ends with an `INSTALL_*` error code.
 
-ApkStart 会把英文原始错误翻译成中文。对照下表处理：
+ApkStart translates the original English errors into a friendly message. Handle it using the table below:
 
-| 错误码 | 含义 | 怎么办 |
+| Error code | Meaning | What to do |
 |---|---|---|
-| `INSTALL_FAILED_NO_MATCHING_ABIS` | 应用只提供 ARM 库，当前镜像没有 ARM 转译层 | **通常自动处理**：ApkStart 切换兼容镜像并重试。详见 [6.3](#63-系统镜像没有-arm-转译层--arm-应用装不上或闪退) |
-| `INSTALL_FAILED_OLDER_SDK` | 应用要求更高 Android 版本 | 需更高系统镜像；当前为 Android 14（API 34），极少触发 |
-| `INSTALL_PARSE_FAILED_NO_CERTIFICATES` | APK 无有效签名 | APK 损坏或非正规包，重新获取安装包 |
-| `INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES` / `INSTALL_FAILED_UPDATE_INCOMPATIBLE` | 与已装版本签名不一致 | 先卸载旧版再装 |
-| `INSTALL_FAILED_VERSION_DOWNGRADE` | 设备上已装更高版本 | 不能降级覆盖，装更高版本或先卸载 |
-| `INSTALL_FAILED_INSUFFICIENT_STORAGE` | 运行时磁盘空间不足 | 清理磁盘，或把运行时数据目录改到空间充足的盘（设置 → 系统集成） |
-| `INSTALL_FAILED_INVALID_APK` | APK 损坏/不完整 | 可能下载未完成，重新下载 |
-| `INSTALL_FAILED_INVALID_URI` | APK 路径含特殊字符/中文 | 把 APK 移到纯英文路径再装 |
-| `INSTALL_FAILED_ALREADY_EXISTS` | 已存在同名且签名不同 | 先卸载 |
-| `INSTALL_FAILED_DEPRECATED_SDK_VERSION` | 面向很老 Android 的应用 | **自动处理**：ApkStart 用官方绕过参数重试 |
-| `INSTALL_FAILED_TEST_ONLY` | 测试专用包 | **自动处理**：自动加测试包参数重试 |
-| `INSTALL_FAILED_MISSING_SHARED_LIBRARY` | 依赖的设备特性/厂商库不存在 | 应用依赖特定厂商环境，模拟器无法提供 |
-| `INSTALL_FAILED_USER_RESTRICTION` | 系统限制安装 | 重启运行时后重试 |
-| `INSTALL_FAILED_CONFLICTING_PROVIDER` | 与已有应用 ContentProvider 冲突 | 卸载冲突应用 |
-| `INSTALL_FAILED_INTERNAL_ERROR` | 系统内部错误（多为空间不足或没开机完成） | 重启运行时，等开机完成后重试 |
+| `INSTALL_FAILED_NO_MATCHING_ABIS` | The app provides only ARM libraries, and the current image has no ARM translation layer | **Usually handled automatically**: ApkStart switches to the compatibility image and retries. See [6.3](#63-the-system-image-has-no-arm-translation-layer--arm-apps-will-not-install-or-crash) |
+| `INSTALL_FAILED_OLDER_SDK` | The app requires a higher Android version | A higher system image is needed; the current one is Android 14 (API 34), so this is rarely triggered |
+| `INSTALL_PARSE_FAILED_NO_CERTIFICATES` | The APK has no valid signature | The APK is damaged or is not a regular package. Get the installer again |
+| `INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES` / `INSTALL_FAILED_UPDATE_INCOMPATIBLE` | The signature does not match the installed version | Uninstall the old version first, then install |
+| `INSTALL_FAILED_VERSION_DOWNGRADE` | A higher version is already installed on the device | You cannot downgrade over it. Install a higher version or uninstall first |
+| `INSTALL_FAILED_INSUFFICIENT_STORAGE` | Not enough disk space in the runtime | Clean up the disk, or change the runtime data folder to a drive with enough space (Settings, System Integration) |
+| `INSTALL_FAILED_INVALID_APK` | The APK is damaged or incomplete | The download may not have finished. Download it again |
+| `INSTALL_FAILED_INVALID_URI` | The APK path contains special characters or non English characters | Move the APK to a path in plain English, then install |
+| `INSTALL_FAILED_ALREADY_EXISTS` | An app with the same name and a different signature already exists | Uninstall it first |
+| `INSTALL_FAILED_DEPRECATED_SDK_VERSION` | An app targeting a very old Android | **Handled automatically**: ApkStart retries with the official bypass parameter |
+| `INSTALL_FAILED_TEST_ONLY` | A test only package | **Handled automatically**: it retries automatically with the test package parameter |
+| `INSTALL_FAILED_MISSING_SHARED_LIBRARY` | A required device feature or vendor library does not exist | The app depends on a specific vendor environment, which the emulator cannot provide |
+| `INSTALL_FAILED_USER_RESTRICTION` | The system restricts installation | Restart the runtime and retry |
+| `INSTALL_FAILED_CONFLICTING_PROVIDER` | A ContentProvider conflicts with an existing app | Uninstall the conflicting app |
+| `INSTALL_FAILED_INTERNAL_ERROR` | An internal system error (usually not enough space, or startup had not finished) | Restart the runtime, wait until startup finishes, then retry |
 
-> 若报的是上表之外的原始英文，直接按 5.3 导出诊断报告反馈。
-
----
-
-### 6.3 系统镜像没有 ARM 转译层 / ARM 应用装不上或闪退
-
-**症状**：安装时报 `INSTALL_FAILED_NO_MATCHING_ABIS`，文案写着"应用只提供 ARM 原生库……当前系统镜像没有 ARM 转译层"；或应用装上后一启动就闪退，日志出现 `DoBadTrampoline`、`libndk_translation`、`UnsatisfiedLinkError`、`...so not found`。
-
-**原理**：0.6.3 用**一个通用 Android 14 镜像**同时支持 x86 和 ARM，翻译层已内置。老版本需要手动切换镜像，那个「通用兼容镜像（自动管理）」开关现在**仅用于旧配置兼容，正常无需手动动**。
-
-**ApkStart 会自动做什么：**
-
-1. 安装时若报 `NO_MATCHING_ABIS`，自动切换兼容镜像 → 重启运行时 → 把已装应用从本地 APK 备份重新灌回去 → 重新安装（见日志"正在切换到兼容镜像并重启运行时…"）。
-2. 若应用启动崩溃且日志明确指向 ARM 翻译层（如 `DoBadTrampoline`），自动切到 Android 14 兼容镜像重试（日志"检测到 ARM 翻译层崩溃，正在自动切换兼容镜像…"）。
-
-**你需要做的：**
-
-- **耐心等**：切换镜像会重启运行时，一次约 40 秒到 1 分钟，期间可能看到提示窗口。
-- **确认镜像已就位**：设置 → 常用与安装 → 运行时，看「通用兼容镜像（自动管理）」状态；若显示未下载，点「下载兼容镜像」（约 1.5 GB），完成后**重启运行时**生效。
-- **仍是闪退**：少数应用自带更深的反模拟检测（强制校验真实传感器、基带等），无法在模拟器里运行；这类应用会给出中文说明，属于限制，不是故障。
-
-**看到「红色『安装失败』+ 文案却说『正在自动切换兼容镜像后重试』」怎么办？**
-
-这是旧版的一个显示错误：镜像文件明明在磁盘上，但复用到一台没开翻译层的旧运行时，切换重试被跳过、直接报了失败，提示文案却照旧说"正在重试"。**你用的不是最新代码，请升级到 0.6.3 的最新构建**（本手册对应的版本已修复：安装前先探测当前运行时的真实翻译能力，不再只看镜像文件在不在；`NO_MATCHING_ABIS` 一定触发切换+重启+清旧快照后重装；二次仍失败会如实告知，不再谎称"正在重试"）。升级后再装一次即可。
-
-> 实测：红果免费短剧（com.phoenix.read，arm64-v8a-only）在 Android 14 镜像 + 新版翻译层下可正常安装、进入推荐流并播放视频。当前运行时 `ro.product.cpu.abilist` = `x86_64,arm64-v8a`，翻译层已生效。
+> If the error is a raw English error outside the table above, export a diagnostic report as in 5.3 and send feedback.
 
 ---
 
-### 6.4 adb 未授权（允许 USB 调试）
+### 6.3 The System Image Has No ARM Translation Layer / ARM Apps Will Not Install or Crash
 
-**症状**：诊断里报"adb 未授权"或"安卓调试授权未完成"，`adb devices` 显示 `unauthorized`，应用一直起不来。
+**Symptoms**: installation reports `INSTALL_FAILED_NO_MATCHING_ABIS`, and the text says the app provides only ARM native libraries and the current system image has no ARM translation layer; or the app crashes as soon as it starts after installation, and the log shows `DoBadTrampoline`, `libndk_translation`, `UnsatisfiedLinkError`, or `...so not found`.
 
-**正确做法（按顺序）：**
+**How it works**: 0.6.3 uses **one universal Android 14 image** to support x86 and ARM at the same time, and the translation layer is built in. Old versions needed a manual image switch. That "Universal compatibility image (managed automatically)" switch is now **only for compatibility with old configurations, and normally you do not need to touch it manually**.
 
-1. 看屏幕上有没有一个模拟器窗口弹着 **「允许 USB 调试？」** 对话框——去那个窗口点**允许**，并勾选 **「一律允许使用这台计算机进行调试」**，之后就不会再问。
-2. 若窗口点不动或一直不出现：设置 → 运行时 → **重置安卓数据 / 清空安卓数据**后重试（会清掉已装应用，APK 文件都在，会自动重装，不影响系统本身）。
+**What ApkStart does automatically:**
 
-> ⚠️ **千万不要去删 `%USERPROFILE%\.android\adbkey`**。实测那是反向操作：Android 只在 `adb_keys` 文件不存在时才写入新公钥；你换了新私钥，系统里存的旧公钥仍然生效，两者对不上，会永远授权不了。
+1. If installation reports `NO_MATCHING_ABIS`, it switches to the compatibility image automatically, restarts the runtime, reinstalls the already installed apps from the local APK backups, and installs again (see the log "Switching to the compatibility image and restarting the runtime...").
+2. If an app crashes on startup and the log clearly points to the ARM translation layer (such as `DoBadTrampoline`), it switches to the Android 14 compatibility image automatically and retries (log "ARM translation layer crash detected, switching to the compatibility image automatically...").
 
-> 命令行排查：ApkStart 的 adb 服务跑在**专用端口 5044**（和你自己的 5037 完全隔开）：
+**What you need to do:**
+
+- **Wait patiently**: switching the image restarts the runtime. One switch takes about 40 seconds to 1 minute, and a hint window may appear during that time.
+- **Confirm the image is in place**: Settings, Common and Installation, Runtime, and look at the status of "Universal compatibility image (managed automatically)". If it shows it is not downloaded, click "Download Compatibility Image" (about 1.5 GB). After it finishes, **restart the runtime** for it to take effect.
+- **Still crashing**: a few apps have deeper anti emulator detection of their own (forcibly checking real sensors, the baseband, and so on) and cannot run in an emulator. Such apps give an explanation. That is a limitation, not a fault.
+
+**What if you see a red "Installation failed", but the text says "Retrying after switching to the compatibility image automatically"?**
+
+That is a display bug in an old version: the image file was clearly on disk, but it was reused on an old runtime without the translation layer enabled, the switch and retry were skipped, and failure was reported directly, while the hint text still said "retrying". **You are not using the latest code. Please upgrade to the latest build of 0.6.3** (the version this manual matches has fixed it: before installation it probes the real translation capability of the currently running runtime instead of only looking at whether the image file exists; `NO_MATCHING_ABIS` always triggers a switch, a restart, clearing the old snapshot, and a reinstall; if it fails a second time it tells you honestly and no longer falsely claims it is "retrying"). Upgrade and install once more.
+
+> Tested: Hongguo Free Short Drama (com.phoenix.read, arm64-v8a only) installs normally on the Android 14 image with the new translation layer, enters the recommendation feed, and plays video. On the current runtime `ro.product.cpu.abilist` = `x86_64,arm64-v8a`, and the translation layer is in effect.
+
+---
+
+### 6.4 adb Not Authorized (Allow USB Debugging)
+
+**Symptoms**: Diagnostics reports "adb not authorized" or "Android debugging authorization not completed", `adb devices` shows `unauthorized`, and apps never start.
+
+**Correct approach (in order):**
+
+1. Look for an emulator window on screen showing an **"Allow USB debugging?"** dialog. Go to that window and click **Allow**, and check **"Always allow from this computer"**. After that it will not ask again.
+2. If the window cannot be clicked, or it never appears: Settings, Runtime, **Reset Android Data / Clear Android Data** and retry (this clears installed apps. The APK files are all still there and will be reinstalled automatically, and it does not affect the system itself).
+
+> Warning: **never delete `%USERPROFILE%\.android\adbkey`**. Testing showed that is the reverse operation: Android writes a new public key only when the `adb_keys` file does not exist. If you replace the private key with a new one, the old public key stored in the system still applies, the two do not match, and authorization will never succeed.
+
+> Command line troubleshooting: the ApkStart adb service runs on **dedicated port 5044** (completely separate from your own 5037):
 > ```powershell
 > $env:ANDROID_ADB_SERVER_PORT = 5044
-> adb devices    # 应看到 emulator-5554
+> adb devices    # should show emulator-5554
 > ```
-> 不要对 5555 端口手动 `adb connect`——Play 镜像会弹"允许 USB 调试"盖在应用上，看起来像程序坏了。
+> Do not manually `adb connect` to port 5555. The Play image pops up "Allow USB debugging" over the app, which looks as if the program is broken.
 
 ---
 
-### 6.5 双击图标没反应 / 一直转圈 / 出现带旋转按钮的窗口
+### 6.5 Double Clicking the Icon Does Nothing / It Spins Forever / A Window With a Rotate Button Appears
 
-这类问题几乎都指向**运行入口或窗口接管**。按下面顺序查。
+Almost all of these problems point to the **launch entry or window takeover**. Check in the order below.
 
-**① 确认你用的是新版程序**
+**1. Confirm you are using the new program**
 
-- 看日志 `%APPDATA%\ApkStart\logs\app.log` 开头：`start v0.6.3` 才对。若显示 `v0.5.x`，说明桌面/开始菜单图标指向了旧版目录。
-- 旧版（0.5.x）没有内置运行时、默认嵌入窗口 → "很慢 + 带旋转按钮的壳窗口"。换成 0.6.3，并把快捷方式指到新版 `ApkStart.exe`。
+- Look at the start of the log `%APPDATA%\ApkStart\logs\app.log`: it should say `start v0.6.3`. If it shows `v0.5.x`, the desktop or Start menu icon points to an old folder.
+- Old versions (0.5.x) have no bundled runtime and use an embedded window by default, which gives "very slow plus a shell window with a rotate button". Change to 0.6.3 and point the shortcut to the new `ApkStart.exe`.
 
-**② 开机时长要有预期**
+**2. Have realistic expectations about startup time**
 
-冷启动约 23~48 秒、换向重启约 50 秒是正常范围。这期间图标点了像"没反应"，其实在后台开机。**不要连点多次**：连点会让第二个实例接管模拟器，而第一个实例退出时的收尾可能把模拟器一起关掉，导致失败（0.6.3 已加 `owner.pid` 保护，但排队等待仍看起来像没反应）。点一次，等它起来。
+A cold start of about 23 to 48 seconds, and a restart for an orientation change of about 50 seconds, are in the normal range. During that time clicking the icon looks like "nothing happens", but it is actually starting up in the background. **Do not click repeatedly**: repeated clicks let the second instance take over the emulator, and the cleanup when the first instance exits may close the emulator with it, causing failure (0.6.3 added `owner.pid` protection, but waiting in a queue still looks like nothing happens). Click once and wait for it to come up.
 
-**③ 原生窗口没接管 → 退回带旋转按钮的嵌入窗口**
+**3. The native window was not taken over, so it fell back to the embedded window with a rotate button**
 
-若日志出现 `attach failed`、`emu:0`，说明窗口代理没找到模拟器窗口，程序退回嵌入模式（就是你看到的带标题栏+旋转按钮的壳窗口）。
-- 从目录联接 / 非标准路径启动时容易触发；0.6.3 已让代理解析真实路径再匹配。若仍出现，附日志反馈。
+If the log shows `attach failed` or `emu:0`, the window agent did not find the emulator window and the program fell back to embedded mode (that is the shell window with a title bar and a rotate button that you see).
+- This is easily triggered when starting from a directory junction or a non standard path. In 0.6.3 the agent resolves the real path before matching. If it still appears, send feedback with the log attached.
 
-**④ 重置安卓数据（最后手段）**
+**4. Reset Android data (last resort)**
 
-设置 → 常用与安装 → **重置安卓数据**（有二次确认）。会清掉已装应用和数据，但保留系统本身，应用清单保留、点开会自动重装。适用于数据分区损坏、`/data` 挂不上导致的各种打不开。
+Settings, Common and Installation, **Reset Android Data** (with a second confirmation). This clears installed apps and data, but keeps the system itself. The app list is kept, and opening an app reinstalls it automatically. It is suitable for cases where nothing opens because the data partition is damaged or `/data` cannot be mounted.
 
 ---
 
-### 6.6 其它启动类问题速查表
+### 6.6 Quick Reference Table for Other Startup Problems
 
-这些运行时错误 ApkStart 大多**已自动处理**；下表说明它做了什么、以及你还能做什么。若自动处理无效，按 5.3 导出诊断报告。
+ApkStart has **already handled most of these runtime errors automatically**. The table below explains what it did and what else you can do. If automatic handling does not work, export a diagnostic report as in 5.3.
 
-| 诊断标题 | 自动处理 | 你还能做 |
+| Diagnostic title | Automatic handling | What else you can do |
 |---|---|---|
-| 硬件加速不可用 | 回退软件模拟 | 按 6.1 开启加速 |
-| 内存分配失败 | 下调内存与核心数 | 关闭占内存的程序 |
-| 模拟器端口被占用 | 自动换空闲端口 | 退出其它模拟器（夜神/MuMu/蓝叠）或重启 |
-| 残留锁文件 / "Running multiple emulators with the same AVD" | 自动清 AVD 锁并重试 | 确认没有别的模拟器在用同一运行时 |
-| 系统镜像缺失/损坏/与旧数据不兼容 | 用干净用户数据重新开机 | 设置 → 运行时删镜像重下 |
-| 快速启动快照损坏 | 丢弃旧快照走冷启动 | 下次正常退出会重建；或关掉快照 |
-| 运行时组件被删/缺 VC++ 运行库 | — | 把 ApkStart 加杀毒白名单后重新解压；安装微软 VC++ 2015-2022 运行库 |
-| 磁盘空间不足 | — | 把运行时目录改到空间充足的盘；关掉快照/调小数据分区 |
-| 路径含中文/特殊字符 | 自动改用短路径 | 把 ApkStart 移到纯英文目录（如 `C:\ApkStart`） |
-| CPU 缺少指令集（AVX/SSE4） | — | 多为警告仍可开机；否则换支持 VT-x/AVX 的机器或旧版引擎 |
-| 当前运行时不接受该 GPU 模式 | 按引擎版本重选可用的 GPU 模式 | — |
-| 显卡/未知错误 | 多组参数自动重试 | 更新显卡驱动；或写兼容补丁；仍不行导出诊断报告 |
+| Hardware acceleration unavailable | Fall back to software emulation | Enable acceleration as in 6.1 |
+| Memory allocation failed | Lower the memory and number of cores | Close programs that use memory |
+| Emulator port already in use | Switch to a free port automatically | Exit other emulators (Nox, MuMu, BlueStacks) or restart |
+| Leftover lock file / "Running multiple emulators with the same AVD" | Clear the AVD lock automatically and retry | Make sure no other emulator is using the same runtime |
+| System image missing, damaged, or incompatible with old data | Start again with clean user data | Settings, Runtime, delete the image and download it again |
+| Quick start snapshot damaged | Discard the old snapshot and do a cold start | It is rebuilt on the next normal exit; or turn snapshots off |
+| Runtime components deleted / VC++ runtime missing | None | Add ApkStart to the antivirus whitelist and extract it again; install the Microsoft VC++ 2015-2022 runtime |
+| Not enough disk space | None | Change the runtime folder to a drive with enough space; turn snapshots off or make the data partition smaller |
+| Path contains non English or special characters | Use a short path automatically | Move ApkStart to a plain English folder (such as `C:\ApkStart`) |
+| CPU lacks instruction sets (AVX/SSE4) | None | Mostly a warning and it can still start; otherwise change to a machine that supports VT-x/AVX, or use an old engine |
+| The current runtime does not accept this GPU mode | Reselect an available GPU mode by engine version | None |
+| Graphics card / unknown error | Retry automatically with several sets of parameters | Update the graphics driver; or write a compatibility patch; if it still fails, export a diagnostic report |
 
-**桌面图标显示成 ApkStart 的图标 / 空白图标**：设置 → 系统集成 → **重建快捷方式**（按当前应用清单重写桌面和开始菜单的快捷方式，连同图标和任务栏身份一起修）。若快捷方式被挪过位置导致路径失效，也要重建。
-
----
-
-### 6.7 应用没有声音 / 声音很小
-
-**症状**：安卓应用里视频、提示音完全没声；或 Windows 其它软件有声、只有 ApkStart 里的应用没声。
-
-**先分清**：如果系统本身也没声音，先去解决 Windows 音频；只有 ApkStart 里的应用没声才按下面查。
-
-1. **Windows 音量与输出设备**：点任务栏音量图标，确认没有静音、音量不为 0，输出设备选的是你正在用的耳机/音箱。打开「音量合成器」，看 ApkStart / 安卓运行时那一行是不是被单独静音或拉到 0。
-2. **应用内音量**：有些应用第一次进入会把媒体音量设成 0，在应用自己的设置或安卓侧音量键里调大。B 站/抖音等还可能在应用内单独关了自动播放声音。
-3. **ApkStart 的声音开关**：设置 → 常用与安装 → **安卓应用声音**必须勾选。0.6.3 的自动检测会检查这一项；若发现被关掉，会在「设置 → 诊断与修复」里报出来，点「处理」即可一键打开。**改完必须重启一次安卓运行时**（开关决定模拟器是否以 `-no-audio` 启动，运行中改了不会立刻出声）。
-4. **Windows 音频服务**：按 `Win+R` 输入 `services.msc`，找到 **Windows Audio**，确认状态为「正在运行」、启动类型为「自动」。若被禁用了，右键启动；这也会被 0.6.3 的自动检测发现并提示。管理员 PowerShell 可执行 `net start Audiosrv`。
-5. **蓝牙耳机 / 多输出设备**：切到蓝牙耳机后 Windows 有时不会把已运行的程序迁过去。断开重连耳机，或重启一次安卓运行时。
-6. **还是没声**：在「设置 → 诊断与修复 → 导出诊断报告」后反馈；报告会带上声音开关与音频服务状态，能直接定位到底是配置、系统服务还是应用本身的问题。
-
-> 自动修复失败时，软件会自动打开这一节。如果你关掉了自动检测通知，也可以从自动检测问题条目的「教程」按钮或标题栏 `?` 手动进来。
+**The desktop icon shows the ApkStart icon or a blank icon**: Settings, System Integration, **Rebuild Shortcuts** (rewrites the desktop and Start menu shortcuts from the current app list, and fixes the icons and the taskbar identity together). If a shortcut was moved and its path became invalid, it also needs to be rebuilt.
 
 ---
 
-### 6.8 商店版启动失败 / 0xC0000135（DLL 加载失败）
+### 6.7 Apps Have No Sound / Sound Is Very Quiet
 
-**症状**：点开应用后一直转圈或直接退出，诊断报告里出现退出码 `0xC0000135`（十进制 `3221225781`）。多见于**从微软商店安装**的版本。
+**Symptoms**: video and notification sounds in Android apps are completely silent; or other Windows software has sound and only apps in ApkStart have none.
 
-**先纠正一个常见误判**：`0xC0000135` 只表示「某个 DLL 没加载成功」，**不等于**一定是缺 VC++ 运行库、也不等于一定是杀毒软件删了文件。同一个退出码背后有三种可能，别只按第一种反复重装：
+**Distinguish first**: if the system itself has no sound, solve the Windows audio problem first. Only follow the steps below when only apps in ApkStart have no sound.
 
-1. **商店（MSIX）版的路径限制**：商店版装在只读的 `C:\Program Files\WindowsApps\...` 目录里。安卓运行时从这个目录拉起 `qemu` 等子进程时，子进程按相对路径找 DLL，可能被容器的路径重定向 / 环境隔离打断，找不到依赖就退出 `0xC0000135`。这是商店版特有、且无法靠重装 VC++ 解决的问题。
-2. **确实缺少 VC++ 运行库**：安卓运行时（Qt6 / qemu）依赖微软 VC++ 2015-2022（x64）。设置 → 诊断与修复里若明确报「缺少 VC++ 运行库（x64）」，那是**实测 dll 文件不存在**，可以点「处理」一键安装。
-3. **杀毒软件隔离了运行时文件**：运行时目录里的 dll 被隔离 / 删除，也会报这个码。把 ApkStart 的安装目录和运行时数据目录加入杀毒白名单，再重新安装一次。
+1. **Windows volume and output device**: click the volume icon in the taskbar, make sure it is not muted and the volume is not 0, and that the output device is the headphones or speakers you are using. Open the "Volume mixer" and check whether the ApkStart / Android runtime line has been muted separately or pulled down to 0.
+2. **In app volume**: some apps set the media volume to 0 the first time you enter them. Turn it up in the app's own settings or with the Android side volume keys. Apps such as Bilibili and Douyin may also have turned off autoplay sound separately inside the app.
+3. **The ApkStart sound switch**: Settings, Common and Installation, **Android App Sound** must be checked. Auto detection in 0.6.3 checks this item. If it finds it turned off, it reports it in Settings, Diagnostics and Repair, and clicking "Handle" turns it on with one click. **After changing it you must restart the Android runtime once** (the switch decides whether the emulator starts with `-no-audio`, so changing it while running does not produce sound immediately).
+4. **Windows audio service**: press `Win+R`, enter `services.msc`, find **Windows Audio**, and make sure its status is "Running" and its startup type is "Automatic". If it is disabled, right click to start it. This is also found and reported by auto detection in 0.6.3. In an administrator PowerShell you can run `net start Audiosrv`.
+5. **Bluetooth headphones / multiple output devices**: after switching to Bluetooth headphones, Windows sometimes does not move already running programs over. Disconnect and reconnect the headphones, or restart the Android runtime once.
+6. **Still no sound**: send feedback after exporting a report in Settings, Diagnostics and Repair, Export Diagnostic Report. The report includes the sound switch and the audio service status, so it can locate directly whether the problem is the configuration, a system service, or the app itself.
 
-**按顺序排查**：
-
-1. **看诊断是不是真的缺 VC++**：如果设置里报的是「缺少 VC++ 运行库（x64）」这一条，点它的一键修复。装完重启电脑再试。**不要**因为退出码是 `0xC0000135` 就去重装——先确认这一条确实报了。
-2. **确认没报 VC++、却仍失败 → 多半是商店版路径问题**：这是当前最可能的原因。依次试：
-   - 完全退出 ApkStart（托盘图标 → 退出），重新打开；
-   - 检查杀毒软件的「受控文件夹访问 / 勒索软件防护」，把 ApkStart 加入白名单后重启；
-   - 若仍不行，用**便携版**（GitHub / Gitee 仓库 Releases 里的 `ApkStart-win64-portable`）放到纯英文目录（如 `C:\ApkStart`）运行——便携版不装在 WindowsApps 下，能直接绕开这个限制。
-3. **想拿到确切的失败 DLL 名**（进阶）：反馈问题时，最有价值的是告诉开发者到底缺的是哪个 dll。可在事件查看器 → Windows 日志 → 应用程序里找 ApkStart / emulator 的 `Application Error`，看 `FaultingModuleName` 字段；或在「设置 → 诊断与修复 → 导出诊断报告」后把报告一起反馈。
-4. **adb 也崩溃怎么办**：若事件日志里另有 `adb.exe` 报 `0xC0000409`，那是另一条独立问题（设备连接异常），不是 emulator 退出的直接原因，可先按上面 1–3 处理启动，adb 问题在反馈时单独说明。
-
-> 这一节会自动弹出：当启动失败 / 修复失败被判定为 DLL 类问题时，软件会直接打开到这里。也可随时从自动检测条目的「教程」按钮或标题栏 `?` 手动进入。
+> When automatic repair fails, the app opens this section automatically. If you turned off auto detection notifications, you can also enter manually from the "Tutorial" button on an auto detection problem item, or from `?` in the title bar.
 
 ---
 
-## 7. 命令行参考
+### 6.8 Store Edition Fails to Start / 0xC0000135 (DLL Failed to Load)
+
+**Symptoms**: after opening the app it spins forever or exits directly, and the diagnostic report shows exit code `0xC0000135` (decimal `3221225781`). This is most common in the **version installed from the Microsoft Store**.
+
+**First correct a common misjudgment**: `0xC0000135` only means "a DLL failed to load". It does **not** necessarily mean the VC++ runtime is missing, and it does not necessarily mean antivirus software deleted a file. There are three possible causes behind the same exit code. Do not just reinstall repeatedly following the first one:
+
+1. **Path limits of the Store (MSIX) edition**: the Store edition is installed in the read only `C:\Program Files\WindowsApps\...` folder. When the Android runtime starts child processes such as `qemu` from this folder, the child process looks for DLLs by relative path, which may be interrupted by the container's path redirection or environment isolation, so it cannot find a dependency and exits with `0xC0000135`. This is specific to the Store edition and cannot be solved by reinstalling VC++.
+2. **The VC++ runtime really is missing**: the Android runtime (Qt6 / qemu) depends on Microsoft VC++ 2015-2022 (x64). If Settings, Diagnostics and Repair clearly reports "VC++ runtime (x64) missing", that is a **measured result that the dll file does not exist**, and you can click "Handle" to install it with one click.
+3. **Antivirus software quarantined runtime files**: a dll in the runtime folder was quarantined or deleted, which also reports this code. Add the ApkStart installation folder and the runtime data folder to the antivirus whitelist, then install once more.
+
+**Troubleshoot in order**:
+
+1. **See whether the diagnostics really say VC++ is missing**: if Settings reports the item "VC++ runtime (x64) missing", click its one click repair. After installation, restart the computer and try again. **Do not** reinstall just because the exit code is `0xC0000135`. First confirm this item really was reported.
+2. **VC++ was not reported, but it still fails, so it is most likely the Store edition path problem**: this is currently the most likely cause. Try in order:
+   - Exit ApkStart completely (tray icon, Exit) and open it again;
+   - Check "Controlled folder access / Ransomware protection" in the antivirus software, add ApkStart to the whitelist, and restart;
+   - If it still fails, use the **portable edition** (`ApkStart-win64-portable` in the Releases of the GitHub / Gitee repository), put it in a plain English folder (such as `C:\ApkStart`), and run it. The portable edition is not installed under WindowsApps, so it bypasses this limit directly.
+3. **To get the exact name of the failing DLL** (advanced): when reporting a problem, the most valuable thing is to tell the developer which dll is missing. You can look in Event Viewer, Windows Logs, Application, for an `Application Error` for ApkStart / emulator, and look at the `FaultingModuleName` field; or export a report in Settings, Diagnostics and Repair, Export Diagnostic Report, and send the report with your feedback.
+4. **What if adb also crashes**: if the event log separately shows `adb.exe` reporting `0xC0000409`, that is a separate independent problem (a device connection abnormality), not the direct cause of the emulator exiting. Handle startup using steps 1 to 3 above first, and explain the adb problem separately in your feedback.
+
+> This section pops up automatically: when a startup failure or repair failure is judged to be a DLL type problem, the app opens straight here. You can also enter manually at any time from the "Tutorial" button on an auto detection item, or from `?` in the title bar.
+
+---
+
+## 7. Command Line Reference
 
 ```
-ApkStart.exe                          打开主界面
-ApkStart.exe <路径\to.apk>            安装 APK
-ApkStart.exe --launch <包名>          直接启动应用（桌面快捷方式用的就是这条）
+ApkStart.exe                          Open the main window
+ApkStart.exe <path\to.apk>            Install an APK
+ApkStart.exe --launch <package name>  Launch an app directly (this is what desktop shortcuts use)
 ```
 
 ---
 
-## 8. 数据与目录说明
+## 8. Data and Folders
 
-| 用途 | 位置 |
+| Purpose | Location |
 |---|---|
-| 运行时（adb / emulator / 镜像） | 随包内置，或 `%APPDATA%\apkstart\runtime`（轻量版） |
-| 展开后的系统镜像 | `%APPDATA%\apkstart\system-images` |
-| AVD / 已装应用 / 快照 | `%APPDATA%\apkstart\avd` |
-| 应用图标 | `%APPDATA%\apkstart\icons\<包名>.ico` |
-| 设置与清单 | `%APPDATA%\ApkStart\settings.json` / `apps.json` |
-| 运行日志 / 诊断报告 | `%APPDATA%\ApkStart\logs\` |
-| Windows ↔ 安卓共享目录 | `%USERPROFILE%\ApkStartShared` ↔ `/sdcard/ApkStartShared` |
+| Runtime (adb / emulator / image) | Bundled with the package, or `%APPDATA%\apkstart\runtime` (lightweight edition) |
+| Extracted system image | `%APPDATA%\apkstart\system-images` |
+| AVD / installed apps / snapshots | `%APPDATA%\apkstart\avd` |
+| App icons | `%APPDATA%\apkstart\icons\<package name>.ico` |
+| Settings and lists | `%APPDATA%\ApkStart\settings.json` / `apps.json` |
+| Run logs / diagnostic reports | `%APPDATA%\ApkStart\logs\` |
+| Windows <-> Android shared folder | `%USERPROFILE%\ApkStartShared` <-> `/sdcard/ApkStartShared` |
 
-> 「重置安卓数据」只清用户数据层，系统镜像和 APK 文件保留；更新应用不会丢运行时、已装应用和快照。
+> "Reset Android Data" clears only the user data layer. The system image and APK files are kept. Updating the app does not lose the runtime, installed apps, or snapshots.
 >
-> 建议 C 盘保留充足空间：镜像展开 + 数据分区 + 快照合计可达数 GB。空间不足会引发Installing/开机失败。
+> Keep enough free space on drive C: the extracted image, the data partition, and snapshots together can reach several GB. Not enough space causes installation and startup failures.
 
 ---
 
-## 9. 获取帮助与反馈
+## 9. Getting Help and Sending Feedback
 
-反馈问题时请附上三样东西，能大幅加快定位：
+When reporting a problem, please attach three things. They greatly speed up locating the cause:
 
-1. **诊断报告**：设置 → 诊断与修复 → 导出诊断报告；
-2. **app.log 最后 20 行**：`%APPDATA%\ApkStart\logs\app.log`；
-3. **你的版本与形态**：如"商店版 0.6.3"或"完整便携版 0.6.3"。
+1. **Diagnostic report**: Settings, Diagnostics and Repair, Export Diagnostic Report;
+2. **The last 20 lines of app.log**: `%APPDATA%\ApkStart\logs\app.log`;
+3. **Your version and form**: for example "Store edition 0.6.3" or "Full portable edition 0.6.3".
 
-- GitHub：<https://github.com/RoutineMiku/apkstart>（Issues / Releases）
-- Gitee：<https://gitee.com/daily-miku/apkstart>
+- GitHub: <https://github.com/RoutineMiku/apkstart> (Issues / Releases)
+- Gitee: <https://gitee.com/daily-miku/apkstart>
 
 ---
 
-*本手册对应 v0.6.3，随版本更新。若界面文案与此处略有出入，以软件内实际显示为准。*
+*This manual matches v0.6.3 and is updated with versions. If the wording in the interface differs slightly from here, what the app actually displays takes precedence.*

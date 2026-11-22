@@ -60,7 +60,7 @@ function isInputCommand(cmd) { return INPUT_RE.test(String(cmd || '')); }
 
 /**
  * 把一批滚轮位移翻译成一次滑动手势。
- * @param {object} o { dx, dy, nx, ny, width, height } —— nx/ny 是光标在 LCD 内的归一化位置
+ * @param {object} o { dx, dy, nx, ny, width, height }  -  nx/ny 是光标在 LCD 内的归一化位置
  * @returns {{x1:number,y1:number,x2:number,y2:number,duration:number}|null}
  */
 function wheelToSwipe({ dx = 0, dy = 0, nx = 0.5, ny = 0.5, width = 900, height = 1600 } = {}) {

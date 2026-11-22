@@ -3,7 +3,7 @@
  * 自动检测 · 采集层（只在主进程跑）
  *
  * 职责：把机器的真实状态采成一份**纯数据**快照 obs，交给 src/core/autodebug.js 判定。
- * 采集层允许失败 —— 拿不到就留空，让判定层「不知道」，绝不编造结论。
+ * 采集层允许失败  -  拿不到就留空，让判定层「不知道」，绝不编造结论。
  *
  * 采集项与耗时预算（一次全量约 2~5 秒）：
  *   - 运行时状态（引擎 status：环境 + adb 在线）
@@ -39,7 +39,7 @@ function countLocks(avdDir) {
 /**
  * 快照是不是「空壳」：snapshot.pb 在但内存镜像没了或太小。
  * 这种快照每次开机都要「加载失败再冷启动」，等于白占几 GB 磁盘。
- * 只读判断，不在这里删 —— 删除交给用户确认或修复动作。
+ * 只读判断，不在这里删  -  删除交给用户确认或修复动作。
  */
 function inspectSnapshot(avdHome, avdName, snapshotName) {
   const base = path.join(avdHome, `${avdName}.avd`, 'snapshots', snapshotName);

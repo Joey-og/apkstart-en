@@ -3,7 +3,7 @@
  * 应用级容器（纯计算层）
  *
  * ApkStart 底层是 QEMU 全系统虚拟机，不可能像 WSA / 卓易通那样「只加载某个 App
- * 需要的那几个系统服务」——Linux 内核、zygote、system_server 必须整包起来。
+ * 需要的那几个系统服务」 - Linux 内核、zygote、system_server 必须整包起来。
  * 但用户真正感受到的「重」并不来自这些常驻服务，而来自：
  *   1. 每开一个 App 就重新引导一次完整 Android（冷启 40~142 秒，CPU/磁盘打满）；
  *   2. 之前开过的 App 全留在后台继续吃内存、拉网络、起唤醒锁；
@@ -151,9 +151,9 @@ function nextSessionState(active, event, pkg) {
 /** 给日志/诊断用的一行摘要 */
 function describeSession(state, plan) {
   const n = state.active.length;
-  if (!n) return '容器空闲（Android 常驻但已降优先级，0 个应用进程）';
-  return `容器活跃：${n} 个应用窗口${plan && plan.stopped && plan.stopped.length
-    ? `，已停掉 ${plan.stopped.length} 个后台应用` : ''}`;
+  if (!n) return 'Container idle (Android is resident but deprioritized, 0 app processes)';
+  return `Container active: ${n} app window(s)${plan && plan.stopped && plan.stopped.length
+    ? `, stopped ${plan.stopped.length} background app(s)` : ''}`;
 }
 
 /**

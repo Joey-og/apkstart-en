@@ -66,7 +66,7 @@ const ORI_LANDSCAPE = new Set([2, 4, 6, 12]);
  *
  * 为什么需要它：模拟器的物理面板（hw.lcd）方向一旦和应用自己的
  * screenOrientation 不一致，Android 只会给应用一个信箱式（letterbox）的
- * 中间窄条 —— 两侧全是黑边，怎么调 wm size / density / letterbox-style 都
+ * 中间窄条  -  两侧全是黑边，怎么调 wm size / density / letterbox-style 都
  * 填不满（这套组合我们逐项试过，见 docs）。唯一能让画面铺满窗口的办法，
  * 就是让面板方向和应用声明的一致。所以在安装时离线把方向算出来存进 apps.json，
  * 启动时按它选面板，用户就不会看到黑边。
@@ -159,7 +159,7 @@ function iconFromXml(zip, xmlBuffer, res, depth = 0) {
  */
 function parseApk(filePath) {
   const stat = fs.statSync(filePath);
-  if (stat.size < 1024) throw new Error('文件过小，不是有效的 APK');
+  if (stat.size < 1024) throw new Error('File is too small, not a valid APK');
   const zip = new ZipFile(filePath);
   try {
     return parseApkZip(zip, filePath, stat);
@@ -171,7 +171,7 @@ function parseApk(filePath) {
 /** parseApk 的主体：调用方负责关闭 zip */
 function parseApkZip(zip, filePath, stat) {
   if (!zip.has('AndroidManifest.xml')) {
-    throw new Error('缺少 AndroidManifest.xml：这不是单个 APK（可能是 .apks/.xapk 拆分包）');
+    throw new Error('Missing AndroidManifest.xml: this is not a single APK (it may be a split package such as .apks/.xapk)');
   }
 
   const manifestBuf = zip.read('AndroidManifest.xml');
@@ -180,11 +180,11 @@ function parseApkZip(zip, filePath, stat) {
   // package 是 manifest 上的**非命名空间**属性（ns=''），必须按「任意命名空间」找：
   // attrValue 默认只认 android 命名空间，传 null 表示不限定命名空间。
   const packageName = attrValue(manifest, 'package', null);
-  if (!packageName) throw new Error('清单中未找到 package 名');
+  if (!packageName) throw new Error('No package name found in the manifest');
   // package 会一路流到路径拼接和 adb shell，必须是纯合法的 Android 包名。
   // 恶意/损坏的清单里塞进 "../"、盘符或 shell 元字符时在这里就拦下（issue #2 P0-1）。
   if (!validPackageName(packageName)) {
-    throw new Error(`清单中的 package 名不合法：${JSON.stringify(String(packageName).slice(0, 80))}`);
+    throw new Error(`Invalid package name in the manifest: ${JSON.stringify(String(packageName).slice(0, 80))}`);
   }
 
   const versionName = attrValue(manifest, 'versionName') || '1.0';

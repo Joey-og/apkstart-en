@@ -39,7 +39,7 @@ const DEFAULT_SETTINGS = {
   device: '127.0.0.1:5555',
   /**
    * 驱动（兼容补丁）扩展：用户自己写的 JSON 补丁放在数据目录的 drivers/ 下。
-   * 这里只记「被用户关掉的 id」——默认全开，坏了能一键关，不用删文件。
+   * 这里只记「被用户关掉的 id」 - 默认全开，坏了能一键关，不用删文件。
    */
   drivers: { state: {}, disabled: [] },
   engine: {
@@ -188,7 +188,7 @@ const DEFAULT_SETTINGS = {
     // true=把安卓画面用 SetParent 塞进 ApkStart 的壳窗口（观感统一，标题栏带
     // 旋转/最小化/最大化/关闭按钮）。
     // 0.6.0 起默认原生窗口：嵌入模式要把别人的窗口重新布局进自己客户区，
-    // 在缩放、旋转、切换应用时会掉帧，还常伴随黑边/坐标错位/铺不满 ——
+    // 在缩放、旋转、切换应用时会掉帧，还常伴随黑边/坐标错位/铺不满  - 
     // 这类问题在嵌入方式下无法根治，原生窗口从根上绕开。
     // 两种模式仍然都能在设置里选（display.windowEmbed）。
     windowEmbed: false,
@@ -209,7 +209,7 @@ function readJson(file, fallback) {
   try {
     let text = fs.readFileSync(file, 'utf8');
     // 去掉可能的 UTF-8 BOM。带 BOM 时 JSON.parse 会直接抛错，于是整个配置
-    // 静默回落到默认值 —— 用户会看到「设置全丢了」，却完全不知道为什么。
+    // 静默回落到默认值  -  用户会看到「设置全丢了」，却完全不知道为什么。
     // 这个文件会被设置页、同步工具、甚至用户手工编辑，必须容忍 BOM。
     if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
     return JSON.parse(text);
@@ -295,7 +295,7 @@ const store = {
      * 这里不再只看「迁移标记」：只要用户**没有在设置页主动选过**
      * （windowEmbedChosen 由设置页写入），读到的值一律纠正为原生，并存回磁盘。
      * 之前的写法只要 windowEmbedMigrated2 已经是 true 就放手不管，于是老配置里
-     * 那句 windowEmbed:true 会一直生效 —— 用户升级后启动看到的仍是美化壳窗口，
+     * 那句 windowEmbed:true 会一直生效  -  用户升级后启动看到的仍是美化壳窗口，
      * 却以为「默认设置没改」。判定基准只认「有没有主动选过」，其它标记都不算数。
      */
     try {

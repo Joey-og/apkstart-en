@@ -45,7 +45,7 @@ function describe() {
  * 按设置创建一个底座实例。
  *
  * 注意：**故意忽略 settings.engine.mode**。老版本可能留下 mode=mumu / fydeos / attach，
- * 手改 settings.json 也可能写成别的值 —— 这些都必须被当成 builtin，
+ * 手改 settings.json 也可能写成别的值  -  这些都必须被当成 builtin，
  * 否则「无论什么情况都独立运行」就是一句空话。返回值里的 id 一定是 'builtin'。
  *
  * @param {object} o { appRoot, settings, runtime, store, log, id }

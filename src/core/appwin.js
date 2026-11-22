@@ -150,7 +150,7 @@ class AppWindow {
     // 独立窗口模式下「全屏」要作用在模拟器窗口上（我们这层壳是隐藏的，
     // maximize 一个隐藏窗口没有任何视觉效果，openDetached 会读这个标记）。
     this._wantFullscreen = !!fullscreen;
-    this.state = { label: label || '应用', tip: '正在启动安卓运行时…', ready: false, landscape: false };
+    this.state = { label: label || 'App', tip: 'Starting the Android runtime...', ready: false, landscape: false };
 
     const area = this._area();
     const size = AppWindow.sizeFor(area, this.portrait, false);
@@ -194,7 +194,7 @@ class AppWindow {
     this.win.once('ready-to-show', () => {
       // 独立窗口模式下，安卓画面在模拟器自己的原生窗口里，我们这层壳没有内容可显示，
       // 留着只会多一个黑色空窗口。所以只加载、不显示（外壳仍存在，供状态/关闭逻辑用）。
-      // 例外：showWhileWaiting（切换应用时没有开机动画兜底）—— 这时宁可先显示这块
+      // 例外：showWhileWaiting（切换应用时没有开机动画兜底） -  这时宁可先显示这块
       // 「正在打开 xxx…」的壳，也不要让用户对着空桌面等 40 秒。
       if (this.detachedMode && !this._showWhileWaiting) return;
       this.win.show();
@@ -203,7 +203,7 @@ class AppWindow {
 
     // Electron 最大化时窗口尺寸会分好几步才稳定（OS 动画、DPI 重算），
     // 单次 40ms 防抖的 fit 常常抓到中间态，结果嵌入画面只占左上角一条，
-    // 右边一大片空白 —— 就是用户截图里「最大化后没填满」。
+    // 右边一大片空白  -  就是用户截图里「最大化后没填满」。
     // 改成连续多轮贴合收敛，每轮都按最新的 getContentBounds 重算。
     const refit = () => this.scheduleFit(6);
     this.win.on('resize', refit);
@@ -239,7 +239,7 @@ class AppWindow {
 
     // 注意：maximize() 会把 show:false 的窗口直接显示出来。
     // 独立窗口模式下画面在模拟器原生窗口里，这里一 maximize 就会在屏幕正中
-    // 多出一个黑色空壳窗口 —— 用户反馈的「打开应用出现多个窗口」有一半来自这里。
+    // 多出一个黑色空壳窗口  -  用户反馈的「打开应用出现多个窗口」有一半来自这里。
     if (fullscreen && !this.detachedMode) this.win.maximize();
     return this.win;
   }
@@ -284,7 +284,7 @@ class AppWindow {
    *
    * 场景：切换到一个横竖屏不同的应用时要重启安卓运行时（约 40 秒），这期间
    * 模拟器原生窗口会被销毁、新窗口还没建出来。如果壳窗口此刻是隐藏的，屏幕上
-   * 什么都没有 —— 用户会以为程序退出了。启动阶段靠 showWhileWaiting 露一次，
+   * 什么都没有  -  用户会以为程序退出了。启动阶段靠 showWhileWaiting 露一次，
    * 但那时候 pre-attach 一成功就会把它收起来；等到真正重启时反而没人再显示。
    *
    * 所以重启前后显式调用一次：先亮出带提示的壳，等新窗口接上后由
@@ -321,13 +321,13 @@ class AppWindow {
   /**
    * 把模拟器窗口嵌进当前窗口，并铺满标题栏以下的区域。
    * 常驻压制不关闭：它会跳过「已经嵌进我们窗口」的那一个，其余窗口（含 qemu /
-   * netsimd 的控制台黑窗）继续压住 —— 关了反而会给它们再露一次脸的机会。
+   * netsimd 的控制台黑窗）继续压住  -  关了反而会给它们再露一次脸的机会。
    * 模拟器窗口偶尔还没创建好（快照恢复太快的机器上），这里重试两次。
    */
   /**
    * 独立窗口模式：**不**把模拟器嵌进我们窗口，而是让它开自己的原生窗口。
    *
-   * 为什么要有这条路：嵌入（SetParent）虽然观感统一，但会带来一整串麻烦 ——
+   * 为什么要有这条路：嵌入（SetParent）虽然观感统一，但会带来一整串麻烦  - 
    * 前后台 Z 序、黑边、坐标映射错位、最大化后不铺满、Qt 面板方向与宿主比例打架。
    * 这些都是「把一个别人的窗口塞进自己窗口」固有的代价。
    *
@@ -347,20 +347,20 @@ class AppWindow {
     // 但 showWhileWaiting 时它现在是可见的「等待提示」，这里负责收起它。
     try { this.win.hide(); } catch (_) { /* ignore */ }
     // 先确保它没被嵌在里面（从嵌入切过来时 _emu 的父窗口还是宿主）。
-    // keep=true：告诉代理这是「切独立窗口」，不是「结束嵌入」——否则它会把
+    // keep=true：告诉代理这是「切独立窗口」，不是「结束嵌入」 - 否则它会把
     // 用户正在看的模拟器窗口当成杂物藏掉。
     const dt = await this.agent.detach(true).catch((e) => ({ ok: false, error: e.message }));
     this._detachedDebug = `detach=${JSON.stringify(dt)}`;
     // 标题必须在 show 之前设。
     // 代理进程是常驻的，里面缓存着「上次设过的标题」（_ourTitle）；新模拟器窗口
-    // 一 show 出来就会先被套上那个旧标题 —— 切换应用时窗口会以**上一个应用的
+    // 一 show 出来就会先被套上那个旧标题  -  切换应用时窗口会以**上一个应用的
     // 名字**闪 0.5 秒，首次启动则先显示 "Android Emulator - apkstart:5554"。
     // 以前的顺序是 show() → setTitle()，所以那半秒一定看得到。
     const title = this.state && this.state.label ? this.state.label : 'ApkStart';
     await this.agent.setTitle(title).catch(() => {});
     // 图标和标题都在窗口 show 之前设好：既避免旧标题/绿色机器人图标先闪一下，
     // 又把原来「setTitle 后等 600ms + show + setIcon 后再等 300ms」两次等待合并成
-    // 一次 —— 打开应用到出画面省约 300ms（默认就是原生窗口模式，每次都走这里）。
+    // 一次  -  打开应用到出画面省约 300ms（默认就是原生窗口模式，每次都走这里）。
     // 图标只影响任务栏/Alt+Tab，设给已存在的 Qt 窗口，不依赖它 show 过。
     const icoForNative = this.iconFilePath
       ? this.iconFilePath.replace(/\.png$/i, '.ico')
@@ -381,7 +381,7 @@ class AppWindow {
     // 却只有 400 宽」。所以这里主动按面板比例算尺寸，一次给对。
     //
     // 全屏（「启动时自动全屏」）时铺满整个可用区；横屏面板下宽高比本来就贴合
-    // 屏幕，铺满不会留黑边 —— 这也是横屏比竖屏更值得用全屏的原因。
+    // 屏幕，铺满不会留黑边  -  这也是横屏比竖屏更值得用全屏的原因。
     const area = this._area();
     const ratio = this._panelRatio();
     let w;
@@ -391,7 +391,7 @@ class AppWindow {
     if (this._wantFullscreen) {
       // 「铺满」也要守住面板比例。竖屏面板（720x1280）塞进 1920x1080 的屏幕时，
       // 直接把窗口设成 area.w × area.h，Qt 会按比例把它缩回去，但位置仍留在
-      // area 左上角 —— 用户看到的是贴在屏幕左上角的一条竖窗，而不是"全屏"。
+      // area 左上角  -  用户看到的是贴在屏幕左上角的一条竖窗，而不是"全屏"。
       // 这里按比例取最大可用矩形并居中，横屏面板本来比例贴合，效果就是真正的铺满。
       const fitW = Math.min(area.w, Math.round(area.h * ratio));
       w = fitW;
@@ -411,7 +411,7 @@ class AppWindow {
       y = Math.round(area.y + 60);
     }
     // area/x/y/w/h 都是 Electron 的 DIP 逻辑像素，而窗口代理的 SetWindowPos 收
-    // 物理像素。150% 缩放下不换算，窗口就只有 2/3 大并偏左上角——即 issue #99
+    // 物理像素。150% 缩放下不换算，窗口就只有 2/3 大并偏左上角 - 即 issue #99
     // 的「显示一半」。_rect()（嵌入模式）早已乘过 sf，这里补齐独立模式的缺口。
     const lay = await this.agent.layout(this._physical({ x, y, w, h }, area.sf))
       .catch((e) => ({ ok: false, error: e.message }));
@@ -429,7 +429,7 @@ class AppWindow {
       const hwnd = this._hwnd();
       if (!hwnd) return false;
       // 外部若提供了候选句柄（历史接口，当前恒为 null）；拿不到就等一下再试
-      // —— 句柄是每次开机重新分配的，缓存一份旧的会把窗口嵌错地方。
+      //  -  句柄是每次开机重新分配的，缓存一份旧的会把窗口嵌错地方。
       let targets = null;
       if (typeof this.windowTargets === 'function') {
         // eslint-disable-next-line no-await-in-loop
@@ -511,7 +511,7 @@ class AppWindow {
    * 1280x720 并重启模拟器。重启约 30~60 秒，所以这里只做一次、并给出明确提示。
    *
    * @param {(next:boolean)=>Promise<boolean>} [onRestart] 由上层注入的重启实现
-   * @param {boolean} [explicitNext] 目标方向。传入时直接用它，不再取反 ——
+   * @param {boolean} [explicitNext] 目标方向。传入时直接用它，不再取反  - 
    *        旋转入口统一算好方向后传进来，避免这里和上层各算各的导致
    *        「写进 apps.json 的覆盖值」与「实际切过去的面板方向」相反。
    */
@@ -519,7 +519,7 @@ class AppWindow {
     if (!this.isOpen) return this.state.landscape;
     const next = explicitNext === undefined || explicitNext === null
       ? !this.state.landscape : !!explicitNext;
-    this.setState({ tip: next ? '正在切换到横屏（重启安卓运行时，约 30-60 秒）…' : '正在切回竖屏（重启安卓运行时，约 30-60 秒）…', ready: false });
+    this.setState({ tip: next ? 'Switching to landscape (restarting the Android runtime, about 30 to 60 seconds)...' : 'Switching back to portrait (restarting the Android runtime, about 30 to 60 seconds)...', ready: false });
     if (typeof onRestart === 'function') {
       const ok = await onRestart(next).catch(() => false);
       if (ok) {
@@ -552,7 +552,7 @@ class AppWindow {
 
   async toggleMaximize() {
     if (!this.isOpen) return;
-    // 独立窗口模式：画面在模拟器原生窗口里，壳窗口是隐藏的 —— maximize 一个隐藏
+    // 独立窗口模式：画面在模拟器原生窗口里，壳窗口是隐藏的  -  maximize 一个隐藏
     // 窗口没有任何视觉效果（这正是「右上角按钮点了没反应」的原因）。这里改成把
     // 模拟器窗口铺满工作区 / 还原到之前的尺寸。
     if (this.detachedMode) {

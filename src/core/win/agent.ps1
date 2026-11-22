@@ -122,7 +122,7 @@ public class ApkAgent
     static long _lastToolSweep = 0;
     static long _embedAt = 0;
     // 常驻压制：默认一开机就开，把模拟器主窗 + 工具栏 + 控制台黑窗压住。
-    // 与「embed 完成就关掉」的旧逻辑不同，它是**常驻**的 —— sweep 会跳过已经嵌进
+    // 与「embed 完成就关掉」的旧逻辑不同，它是**常驻**的  -  sweep 会跳过已经嵌进
     // 我们窗口的那一个窗口，其余一律藏起来（含 ApkStart 退出后回到桌面的那个黑窗）。
     static volatile bool _quiet = true;
     static volatile bool _perfMode = false;
@@ -281,7 +281,7 @@ public class ApkAgent
     // small "QWindowTool*" window we hide.
     //
     // 注意：模拟器开机阶段（以及被常驻压制藏起来之后）这个窗口是**不可见**的，
-    // 所以这里不能再按 IsWindowVisible 过滤 —— 否则永远找不到可嵌入的窗口，
+    // 所以这里不能再按 IsWindowVisible 过滤  -  否则永远找不到可嵌入的窗口，
     // 用户看到的是一个全黑的应用窗口。改为「标题是 Android Emulator 就认，
     // 可见的大窗口优先」。工具栏 / 提示窗（QWindowTool）尺寸太小，被面积阈值挡掉。
     //
@@ -328,7 +328,7 @@ public class ApkAgent
     }
 
     // 诊断用：列出顶层窗口（类别 / 标题 / pid / 尺寸 / 是否可见）。
-    // 用于验证「打开软件只看到软件界面」——模拟器主窗、netsim 控制台都必须不在其中。
+    // 用于验证「打开软件只看到软件界面」 - 模拟器主窗、netsim 控制台都必须不在其中。
     static string ListWindows(bool includeHidden)
     {
         var sb = new StringBuilder();
@@ -384,7 +384,7 @@ public class ApkAgent
     // 它们是 console 子系统进程，Node 的 windowsHide 覆盖不到子进程，只能靠 Win32 周期压住。
     //
     // 关键坑：Windows 10 以后控制台窗口真正属于 conhost.exe，GetWindowThreadProcessId
-    // 拿到的是 conhost 的 pid，不是 emulator 的 pid —— 老实现按 pid 白名单匹配，
+    // 拿到的是 conhost 的 pid，不是 emulator 的 pid  -  老实现按 pid 白名单匹配，
     // 于是这些黑窗一个都藏不住（"点了没反应，先弹个 cmd 黑框"就是这么来的）。
     // 现在改成「pid 命中 或 窗口标题命中（标题就是被启动的 exe 路径）」，两条路任一生效即隐藏。
     static void HideConsoleWindows()
@@ -413,7 +413,7 @@ public class ApkAgent
         {
             if (IsOurConsole(h)) { ShowWindow(h, 0); continue; }
             // 第三条证据（Windows 11 才有）：默认控制台宿主换成 Windows Terminal 之后，
-            // 模拟器给 qemu 新开的那个控制台窗口属于 WindowsTerminal.exe ——
+            // 模拟器给 qemu 新开的那个控制台窗口属于 WindowsTerminal.exe  - 
             // pid 不是我们的、父进程链走不到我们、标题还经常只是个 "Terminal"，
             // 上面两条证据全都命中不了，于是每次开机都在屏幕上闪 200~300ms 的黑框。
             // 这里用「开机前不存在 + 开机后 20 秒内出现 + 标题是空的/就是 Terminal」
@@ -426,7 +426,7 @@ public class ApkAgent
                 string tl = t.ToLowerInvariant();
                 // 标题实测会变：可能是空、可能是 "Terminal"、也可能是 "Windows Terminal"
                 // （取决于 WT 版本和它当时有没有拿到 shell 标题）。这里只要求「像个控制台
-                // 宿主」——空标题，或者标题里带 terminal。
+                // 宿主」 - 空标题，或者标题里带 terminal。
                 // 用户自己已经开着的终端都在 _consolesBeforeBoot 里，不会被误伤；
                 // 真误伤了也只是藏起来，不会关掉他的进程。
                 bool plain = t.Length == 0 || tl.IndexOf("terminal", StringComparison.Ordinal) >= 0;
@@ -515,7 +515,7 @@ public class ApkAgent
             if (!IsOurs(pid)) return true;
             string cls = ClassOf(h);
             // 只藏明确的弹窗类：Qt 提示窗 / 对话框 / 控制台。
-            // 绝不碰 QWindowIcon / subWin —— 那是正在嵌入的 LCD，藏掉就全黑且点击失效。
+            // 绝不碰 QWindowIcon / subWin  -  那是正在嵌入的 LCD，藏掉就全黑且点击失效。
             bool safe = cls.IndexOf("QWindowTool", StringComparison.Ordinal) >= 0
                      || cls.IndexOf("ConsoleWindowClass", StringComparison.Ordinal) >= 0
                      || cls.IndexOf("CASCADIA_HOSTING_WINDOW_CLASS", StringComparison.Ordinal) >= 0
@@ -535,7 +535,7 @@ public class ApkAgent
     // 同时把工具栏（QWindowTool）与所有控制台窗口（qemu / netsimd / emulator）压住。
 
     // embed 那一刻 Electron 的网页渲染子窗口可能还没建好，FindChromeRender 会返回 0，
-    // 于是 simulator 被挂成了宿主的直接子窗口（和网页层是兄弟）—— 网页层会持续
+    // 于是 simulator 被挂成了宿主的直接子窗口（和网页层是兄弟） -  网页层会持续
     // 盖住画面并吃掉鼠标。这里在常驻扫描里补挂：一旦发现网页层出现了，就重挂一次。
     static void EnsureReparent()
     {
@@ -618,7 +618,7 @@ public class ApkAgent
 
     // 找宿主窗口里的 Chromium 渲染子窗口。
     // Electron 的网页层（Chrome_RenderWidgetHostHWND）和模拟器窗口如果都是宿主的
-    // 直接子窗口，它们就是「兄弟」，而 Electron 会持续把网页层抬到最前 ——
+    // 直接子窗口，它们就是「兄弟」，而 Electron 会持续把网页层抬到最前  - 
     // 于是网页层那块黑底盖住安卓画面、鼠标也全被它吃掉（用户看到的「黑边 /
     // 未填满 / 点击失效 / 点不动同意」全是这个）。
     // 把模拟器挂成网页层的**子窗口**后，Z 序与鼠标命中天然优先给模拟器。
@@ -684,7 +684,7 @@ public class ApkAgent
         // 也不是信 Chrome 渲染层自己的尺寸。
         //
         // 为什么：Electron 最大化后宿主窗口变成 1936x1048，但内部的
-        // Chrome_RenderWidgetHostHWND 仍停在旧尺寸（实测 532x984）—— 而模拟器
+        // Chrome_RenderWidgetHostHWND 仍停在旧尺寸（实测 532x984） -  而模拟器
         // 窗口挂在 chrome 层之下，会被父窗口裁剪，于是画面只占左上角一条、
         // 右边一大片空白（用户截图里「最大化/全屏后没填满」）。
         // 所以这里先把 chrome 层拉满宿主客户区，再把 emu 设为该客户区大小。
@@ -722,7 +722,7 @@ public class ApkAgent
         if (h < 16) h = 16;
         // 只有「确实已经嵌进我们窗口」的才允许显示。
         // 万一 embed 失败（模拟器窗口还没建好 / 句柄换了），Fit 绝不能把它当独立窗口
-        // 顶到桌面上 —— 那正是用户看到的那个 "Android Emulator - apkstart5554" 黑窗。
+        // 顶到桌面上  -  那正是用户看到的那个 "Android Emulator - apkstart5554" 黑窗。
         IntPtr ep = GetParent(_emu);
         bool embedded = ep != IntPtr.Zero
                      && (ep == _host || ep == _chromeRender);
@@ -1116,7 +1116,7 @@ public class ApkAgent
             if (_embedAt != 0 && now - _embedAt >= 8000) _embedAt = 0;
 
             // 常驻压制：模拟器主窗 / 工具栏 / qemu·netsimd 控制台黑窗。
-            // 每轮要枚举全桌面窗口若干次，开销不小 —— 之前 120ms 一轮持续 90 秒，
+            // 每轮要枚举全桌面窗口若干次，开销不小  -  之前 120ms 一轮持续 90 秒，
             // 会明显拖慢整机（用户反馈「整个系统卡顿」）。实际上窗口已经嵌入后
             // 根本不需要这么频繁：开机前 10 秒 250ms 抓闪窗，之后 1500ms 兜底即可。
             // game 模式（_perfMode）下进一步降到 3000ms，把 CPU 全留给安卓渲染。
@@ -1133,7 +1133,7 @@ public class ApkAgent
             // 为什么需要：emulator 启动 qemu 时 Windows 会新建一个控制台窗口，
             // 它的归属进程是 conhost / WindowsTerminal，IsOurs 为 false，只能靠
             // IsOurConsole 的「标题 = 我们的运行时路径」来认。这类窗口只可见
-            // 200~300ms，250ms 一轮的主巡检有几率漏掉 —— 用户看到的就是开机时
+            // 200~300ms，250ms 一轮的主巡检有几率漏掉  -  用户看到的就是开机时
             // 闪一下黑框。这里 100ms 一轮，必然能在它消失前抓到。
             if (_quiet && now - _bootHideStart < 15000
                 && now - _consoleSweep > (_perfMode ? 200 : 100))
@@ -1145,7 +1145,7 @@ public class ApkAgent
             try
             {
                 // 连接已经断了（ApkStart 退出 / 异常崩溃）：不立刻收工。
-                // 模拟器可能还在开机，几十秒后 Qt 才把窗口显示出来 —— 那时如果
+                // 模拟器可能还在开机，几十秒后 Qt 才把窗口显示出来  -  那时如果
                 // 已经没有代理在盯着，桌面上就会留一个 Android Emulator 黑窗。
                 // 所以断线后继续「守」一会儿，直到最后一段时间没有模拟器进程。
                 if (sock == null)

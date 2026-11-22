@@ -11,19 +11,19 @@
 
 /** 章节 id 与 src/ui/manual.html 的锚点一一对应（由 docs/build-manual-html.py 生成） */
 const TOPICS = Object.freeze({
-  overview: { id: 'overview', anchor: 'apkstart-产品使用手册与问题解决方案', title: '使用手册 · 目录' },
-  accel: { id: 'accel', anchor: '6-1-提示-未启用硬件加速-开机很慢', title: '未启用硬件加速 / 开机很慢' },
-  install: { id: 'install', anchor: '6-2-安装失败-install_failed_', title: '安装失败（INSTALL_FAILED_*）' },
-  arm: { id: 'arm', anchor: '6-3-系统镜像没有-arm-转译层-arm-应用装不上或闪退', title: 'ARM 转译层 / ARM 应用装不上' },
-  adb: { id: 'adb', anchor: '6-4-adb-未授权-允许-usb-调试', title: 'adb 未授权（允许 USB 调试）' },
-  startup: { id: 'startup', anchor: '6-5-双击图标没反应-一直转圈-出现带旋转按钮的窗口', title: '打不开 / 带旋转按钮的窗口' },
-  other: { id: 'other', anchor: '6-6-其它启动类问题速查表', title: '其它启动类问题速查表' },
-  sound: { id: 'sound', anchor: '6-7-应用没有声音-声音很小', title: '应用没有声音 / 声音很小' },
-  dll: { id: 'dll', anchor: '6-8-商店版启动失败-0xc0000135-dll-加载失败', title: '商店版启动失败 / 0xC0000135（DLL 加载失败）' },
-  diagnose: { id: 'diagnose', anchor: '5-4-内置使用手册与自动教程', title: '内置手册与自动教程' },
-  settings: { id: 'settings', anchor: '3-6-设置页导航', title: '设置页导航' },
-  storage: { id: 'storage', anchor: '8-数据与目录说明', title: '数据与目录说明' },
-  network: { id: 'network', anchor: '5-2-自动检测-自动-debug', title: '自动检测与网络修复' },
+  overview: { id: 'overview', anchor: 'apkstart-user-manual-and-troubleshooting-guide', title: 'User Manual - Contents' },
+  accel: { id: 'accel', anchor: '6-1-hardware-acceleration-is-not-enabled-very-slow-startup', title: 'Hardware acceleration not enabled / slow boot' },
+  install: { id: 'install', anchor: '6-2-installation-failed-install_failed_', title: 'Install failed (INSTALL_FAILED_*)' },
+  arm: { id: 'arm', anchor: '6-3-the-system-image-has-no-arm-translation-layer-arm-apps-will-not-install-or-crash', title: 'ARM translation layer / ARM apps will not install' },
+  adb: { id: 'adb', anchor: '6-4-adb-not-authorized-allow-usb-debugging', title: 'adb unauthorized (Allow USB debugging)' },
+  startup: { id: 'startup', anchor: '6-5-double-clicking-the-icon-does-nothing-it-spins-forever-a-window-with-a-rotate-button-appears', title: 'Will not open / window with a rotate button' },
+  other: { id: 'other', anchor: '6-6-quick-reference-table-for-other-startup-problems', title: 'Other startup problems - quick reference' },
+  sound: { id: 'sound', anchor: '6-7-apps-have-no-sound-sound-is-very-quiet', title: 'App has no sound / sound is very quiet' },
+  dll: { id: 'dll', anchor: '6-8-store-edition-fails-to-start-0xc0000135-dll-failed-to-load', title: 'Store edition fails to start / 0xC0000135 (DLL failed to load)' },
+  diagnose: { id: 'diagnose', anchor: '5-4-built-in-user-manual-and-automatic-tutorials', title: 'Built-in manual and automatic guides' },
+  settings: { id: 'settings', anchor: '3-6-settings-page-navigation', title: 'Settings page navigation' },
+  storage: { id: 'storage', anchor: '8-data-and-folders', title: 'Data and folders explained' },
+  network: { id: 'network', anchor: '5-2-auto-detection-automatic-debugging', title: 'Automatic checks and network repair' },
 });
 
 const ARM_RE = /NO_MATCHING_ABIS|DoBadTrampoline|libndk_translation|UnsatisfiedLinkError|arm64-v8a|armeabi-v7a|ARM 翻译层|ARM 转译层/i;

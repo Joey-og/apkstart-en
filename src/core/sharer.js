@@ -64,14 +64,14 @@ class Sharer {
     const result = { pushed: 0, pulled: 0, errors: [] };
     try {
       const client = this.runtime.client();
-      if (!(await client.isOnline())) throw new Error('运行时未连接');
+      if (!(await client.isOnline())) throw new Error('Runtime is not connected');
       await this.ensureDirs(onLog);
       const state = this.loadState();
 
       // --- 本机 → 设备 ---
       // 状态里同时记「本机 mtime」和「设备 mtime」两个值。
       // 老实现只记一个 mtime、拉完写回本机时间，于是下一轮拿本机时间去和设备的
-      // 时间比 —— 永远不相等 → 每 8 秒把同一个文件从设备拉一遍，落盘时间又变，
+      // 时间比  -  永远不相等 → 每 8 秒把同一个文件从设备拉一遍，落盘时间又变，
       // 再下一轮继续拉……表现就是「硬盘一直转、文件反复重写、空间越用越少」。
       const stateOf = (prev) => (prev ? {
         size: prev.size,

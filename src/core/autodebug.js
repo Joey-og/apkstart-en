@@ -11,7 +11,7 @@
  * 唯一额外依赖是同目录的 manual.js（纯映射表），用来把问题直接指到内置教程章节。
  *
  * 一条铁律：obs 里没有的字段一律当作「不知道」，不能因为探测失败就报问题。
- * 误报比漏报更伤用户信任 —— 用户一旦发现弹出来的「检测结果」是假的，
+ * 误报比漏报更伤用户信任  -  用户一旦发现弹出来的「检测结果」是假的，
  * 就再也不会相信自动检测给出的任何结论了。
  */
 
@@ -19,12 +19,12 @@ const manual = require('./manual');
 
 /** 问题分类（设置页按这个顺序分组展示） */
 const CATEGORIES = [
-  { id: 'runtime', name: '运行时', hint: '安卓虚拟机进程、启动阶段、快照与残留锁' },
-  { id: 'device', name: '设备连接', hint: 'adb 授权状态、设备是否在线' },
-  { id: 'storage', name: '存储', hint: '磁盘余量、数据分区、共享目录' },
-  { id: 'settings', name: '设置', hint: '配置之间的冲突与互相抵消' },
-  { id: 'network', name: '网络', hint: '安卓网络与下载源连通性' },
-  { id: 'logs', name: '日志', hint: '运行日志里的错误' },
+  { id: 'runtime', name: 'Runtime', hint: 'Android virtual machine process, boot stage, snapshots and leftover locks' },
+  { id: 'device', name: 'Device connection', hint: 'adb authorization status and whether the device is online' },
+  { id: 'storage', name: 'Storage', hint: 'Free disk space, data partition and shared folder' },
+  { id: 'settings', name: 'Settings', hint: 'Conflicts between settings that cancel each other out' },
+  { id: 'network', name: 'Network', hint: 'Android network and download source connectivity' },
+  { id: 'logs', name: 'Logs', hint: 'Errors in the runtime logs' },
 ];
 
 const CATEGORY_IDS = CATEGORIES.map((c) => c.id);
@@ -82,8 +82,8 @@ function evaluate(obs) {
       code: 'runtime.bootFailed',
       category: 'runtime',
       severity: 'error',
-      title: '安卓运行时上次启动失败',
-      hint: '运行时的真实报错已经拿到，按这条原因处理通常一次就能恢复。',
+      title: 'The Android runtime failed to start last time',
+      hint: 'The real runtime error has been captured. Dealing with this cause usually restores it in one go.',
       detail: bootError,
       fix: 'restartRuntime',
     });
@@ -95,9 +95,9 @@ function evaluate(obs) {
       code: 'runtime.stuckBoot',
       category: 'runtime',
       severity: 'warn',
-      title: '安卓开机卡在引导阶段',
-      hint: '已经引导超过 2 分半还没进系统。常见原因是快速启动快照损坏，重启运行时（会走一次冷启动）通常能解决。',
-      detail: `阶段：${runtime.phase}`,
+      title: 'Android boot is stuck at the boot stage',
+      hint: 'It has been booting for over 2.5 minutes without entering the system. A common cause is a damaged quick boot snapshot; restarting the runtime (which does one cold boot) usually fixes it.',
+      detail: `Stage: ${runtime.phase}`,
       fix: 'restartRuntime',
     });
   }
@@ -108,8 +108,8 @@ function evaluate(obs) {
       code: 'runtime.staleLocks',
       category: 'runtime',
       severity: 'warn',
-      title: `检测到 ${runtime.locks} 个上次残留的锁文件`,
-      hint: '锁文件没清会让下一次启动被判定为「AVD 已被占用」而直接失败。可以一键清掉。',
+      title: `Detected ${runtime.locks} lock file(s) left over from last time`,
+      hint: 'If lock files are not cleared, the next start will be judged as AVD already in use and fail directly. They can be cleared with one click.',
       fix: 'lock',
     });
   }
@@ -121,8 +121,8 @@ function evaluate(obs) {
       code: 'runtime.orphanProcesses',
       category: 'runtime',
       severity: 'warn',
-      title: `有 ${runtime.orphans} 个残留的模拟器进程`,
-      hint: '上次没有正常关机的安卓进程还占着资源与 AVD 锁，会让下次开机失败。可以一键清理（不会动已装应用与存档）。',
+      title: `There are ${runtime.orphans} leftover emulator process(es)`,
+      hint: 'Android processes that did not shut down normally last time are still holding resources and the AVD lock, which will make the next boot fail. They can be cleaned up with one click (installed apps and saves will not be touched).',
       fix: 'orphans',
     });
   }
@@ -133,8 +133,8 @@ function evaluate(obs) {
       code: 'runtime.staleSnapshot',
       category: 'runtime',
       severity: 'warn',
-      title: '快速启动快照已损坏',
-      hint: '快照文件还在但校验不通过，每次开机都要额外冷启动一次。删掉它会用一次冷启动换回磁盘空间。',
+      title: 'The quick boot snapshot is damaged',
+      hint: 'The snapshot file is still there but fails verification, so every boot needs an extra cold boot. Deleting it trades one cold boot for recovered disk space.',
       fix: 'snapshots',
     });
   }
@@ -147,8 +147,8 @@ function evaluate(obs) {
       code: 'device.unauthorized',
       category: 'device',
       severity: 'error',
-      title: '安卓设备未授权调试',
-      hint: '安卓侧弹过「允许 USB 调试吗」但没被确认，adb 一直连不上。重启运行时（走一次冷启动）会重新弹出确认框，确认后即恢复。',
+      title: 'The Android device has not authorized debugging',
+      hint: 'Android showed Allow USB debugging but it was not confirmed, so adb cannot connect. Restarting the runtime (one cold boot) will show the confirmation dialog again; confirming it restores the connection.',
       fix: 'restartRuntime',
     });
   } else if (device.state === 'offline') {
@@ -156,8 +156,8 @@ function evaluate(obs) {
       code: 'device.offline',
       category: 'device',
       severity: 'warn',
-      title: '安卓设备处于 offline 状态',
-      hint: 'adb 能看到设备但连不上，通常是虚拟机还在引导或 adb 服务没握手成功。等一会儿仍不恢复就重启运行时。',
+      title: 'The Android device is offline',
+      hint: 'adb can see the device but cannot connect, usually because the virtual machine is still booting or the adb service has not completed its handshake. If it does not recover after a while, restart the runtime.',
       fix: 'restartRuntime',
     });
   } else if (runtime.running && device.checked && device.state === 'no-device') {
@@ -165,8 +165,8 @@ function evaluate(obs) {
       code: 'device.missing',
       category: 'device',
       severity: 'warn',
-      title: '运行时在跑，但 adb 没看到设备',
-      hint: '安卓进程活着、adb 却看不到设备，多半是 adb 服务端口被别的程序占了，或者引导还没完成。',
+      title: 'The runtime is running, but adb sees no device',
+      hint: 'The Android process is alive but adb cannot see the device, most likely because another program is using the adb service port, or booting has not finished yet.',
       fix: 'restartRuntime',
     });
   }
@@ -179,9 +179,9 @@ function evaluate(obs) {
       code: 'storage.diskCritical',
       category: 'storage',
       severity: 'error',
-      title: '运行时所在磁盘快满了',
-      hint: '剩余空间不足 2 GB，装应用和写快照都会失败。点「一键清理」回收旧镜像、旧快照和日志。',
-      detail: `剩余 ${freeMB} MB`,
+      title: 'The disk holding the runtime is almost full',
+      hint: 'Less than 2 GB remains, so installing apps and writing snapshots will fail. Click One-click cleanup to reclaim old images, old snapshots and logs.',
+      detail: `${freeMB} MB remaining`,
       fix: 'disk',
     });
   } else if (freeMB > 0 && freeMB < 8192) {
@@ -189,9 +189,9 @@ function evaluate(obs) {
       code: 'storage.diskLow',
       category: 'storage',
       severity: 'warn',
-      title: '运行时所在磁盘空间偏紧',
-      hint: '剩余不足 8 GB，快照和系统镜像还需要空间。建议先清理一次可回收文件。',
-      detail: `剩余 ${freeMB} MB`,
+      title: 'Disk space for the runtime is tight',
+      hint: 'Less than 8 GB remains, and snapshots and system images still need space. Clean up reclaimable files first.',
+      detail: `${freeMB} MB remaining`,
       fix: 'disk',
     });
   }
@@ -202,9 +202,9 @@ function evaluate(obs) {
       code: 'storage.dataNeedsReset',
       category: 'storage',
       severity: 'warn',
-      title: '数据分区扩容没有真正生效',
-      hint: '快速启动用的差量盘挡着就地扩容，guest 里看到的还是旧容量。需要「重置安卓数据」后按新容量重建（会清掉已装应用）。',
-      detail: `配置 ${storage.configuredGB} GB · 实际 ${storage.actualGB} GB`,
+      title: 'The data partition expansion did not really take effect',
+      hint: 'The differencing disk used for quick boot blocks in-place expansion, so the guest still sees the old capacity. Reset Android data and rebuild at the new capacity (this clears installed apps).',
+      detail: `Configured ${storage.configuredGB} GB - Actual ${storage.actualGB} GB`,
       fix: 'dataReset',
     });
   } else if (Number(storage.configuredGB) > 0 && Number(storage.actualGB) > 0
@@ -213,9 +213,9 @@ function evaluate(obs) {
       code: 'storage.dataMismatch',
       category: 'storage',
       severity: 'error',
-      title: '安卓数据分区比配置的小',
-      hint: '安卓里实际可用容量小于设置里写的值，装大游戏会提示存储空间不足。',
-      detail: `配置 ${storage.configuredGB} GB · 实际 ${storage.actualGB} GB`,
+      title: 'The Android data partition is smaller than configured',
+      hint: 'The capacity actually available in Android is less than the value in Settings, so large games will report insufficient storage.',
+      detail: `Configured ${storage.configuredGB} GB - Actual ${storage.actualGB} GB`,
       fix: 'dataReset',
     });
   }
@@ -225,8 +225,8 @@ function evaluate(obs) {
       code: 'storage.sharedBroken',
       category: 'storage',
       severity: 'warn',
-      title: '共享目录不可用',
-      hint: '文件互通用的本机目录不存在或没有写权限，安卓里保存的文件同步不过去。',
+      title: 'The shared folder is unavailable',
+      hint: 'The local folder used for file sharing does not exist or has no write permission, so files saved in Android cannot sync across.',
       detail: storage.sharedPath || '',
       fix: 'shared',
     });
@@ -241,8 +241,8 @@ function evaluate(obs) {
       code: 'settings.orientationConflict',
       category: 'settings',
       severity: 'warn',
-      title: '屏幕方向策略与当前面板方向相反',
-      hint: '策略要求竖屏，但面板现在是横屏，安卓只会给应用一条窄画面加两侧黑边。把面板方向改成与策略一致即可。',
+      title: 'The screen orientation policy is opposite to the current panel orientation',
+      hint: 'The policy requires portrait, but the panel is currently landscape, so Android will only give apps a narrow picture with black bars on both sides. Set the panel orientation to match the policy.',
       fix: 'orientation',
     });
   } else if (mode === 'landscape' && settings.landscape === false) {
@@ -250,8 +250,8 @@ function evaluate(obs) {
       code: 'settings.orientationConflict',
       category: 'settings',
       severity: 'warn',
-      title: '屏幕方向策略与当前面板方向相反',
-      hint: '策略要求横屏，但面板现在是竖屏，看剧/游戏会是一条竖着的窄画面。把面板方向改成与策略一致即可。',
+      title: 'The screen orientation policy is opposite to the current panel orientation',
+      hint: 'The policy requires landscape, but the panel is currently portrait, so videos and games will be a narrow vertical strip. Set the panel orientation to match the policy.',
       fix: 'orientation',
     });
   }
@@ -261,8 +261,8 @@ function evaluate(obs) {
       code: 'settings.detachedFullscreen',
       category: 'settings',
       severity: 'info',
-      title: '原生窗口模式下的「启动时自动全屏」不会生效',
-      hint: '原生窗口由模拟器自己开窗，全屏由它自己决定，不受这里的开关控制。想铺满屏幕可在窗口里按 F11，或把窗口承载方式改成嵌入模式。',
+      title: 'Auto full screen on launch has no effect in native window mode',
+      hint: 'In native window mode the emulator opens its own window and decides full screen itself, so this switch does not control it. To fill the screen, press F11 in the window, or change the window hosting mode to embedded.',
     });
   }
 
@@ -271,8 +271,8 @@ function evaluate(obs) {
       code: 'settings.snapshotOffLowDisk',
       category: 'settings',
       severity: 'info',
-      title: '磁盘偏紧，快速启动快照已关闭',
-      hint: '当前磁盘余量不到 4 GB，快照又被关掉：打开应用会走一次完整冷启动（十几秒）。磁盘够的话建议重新打开快照。',
+      title: 'Disk space is tight and the quick boot snapshot is off',
+      hint: 'Less than 4 GB of disk space remains and the snapshot is off, so opening an app will do a full cold boot (over ten seconds). If there is enough disk space, turn the snapshot back on.',
       fix: 'settings',
     });
   }
@@ -287,8 +287,8 @@ function evaluate(obs) {
       code: 'audio.disabled',
       category: 'settings',
       severity: 'warn',
-      title: '安卓应用声音已在设置里关闭',
-      hint: '模拟器是以 -no-audio 启动的，所以只有 ApkStart 里的应用没声音。点「处理」重新打开，并重启一次运行时即可。',
+      title: 'Android app sound is turned off in Settings',
+      hint: 'The emulator was started with -no-audio, so only apps in ApkStart have no sound. Click Fix to turn it back on, and restart the runtime once.',
       fix: 'audio',
     });
   }
@@ -297,8 +297,8 @@ function evaluate(obs) {
       code: 'audio.windowsServiceStopped',
       category: 'settings',
       severity: 'warn',
-      title: 'Windows 音频服务（Audiosrv）未运行',
-      hint: '这会连系统其它软件一起没声音。到 services.msc 启动 Windows Audio 并设为自动，或在管理员 PowerShell 里执行 net start Audiosrv。',
+      title: 'The Windows Audio service (Audiosrv) is not running',
+      hint: 'This makes other system software lose sound too. Start Windows Audio in services.msc and set it to Automatic, or run net start Audiosrv in an administrator PowerShell.',
       fix: 'audioService',
     });
   }
@@ -310,8 +310,8 @@ function evaluate(obs) {
       code: 'network.guestDown',
       category: 'network',
       severity: 'warn',
-      title: '安卓里没有网络',
-      hint: '安卓侧解析或联网失败，视频/资讯类应用会一直转圈。可以用「修复网络」重置安卓数据解决（应用清单会保留）。',
+      title: 'There is no network in Android',
+      hint: 'Android failed to resolve or connect, so video and news apps will keep spinning. Use Repair network to reset the Android data to fix it (the app list will be kept).',
       detail: network.reason || '',
       fix: 'repairNetwork',
     });
@@ -323,8 +323,8 @@ function evaluate(obs) {
       code: 'network.sourcesDown',
       category: 'network',
       severity: 'warn',
-      title: `${badSources.length} 个下载源连不上`,
-      hint: '更新检查会同时问多个源，有一个不通不影响使用；如果全都不通，请检查网络或代理。',
+      title: `${badSources.length} download source(s) cannot be reached`,
+      hint: 'Update checks ask several sources at once; one unreachable source does not affect use. If none can be reached, check your network or proxy.',
       detail: badSources.map((s) => s.name).join('、'),
       fix: 'settings',
     });
@@ -338,8 +338,8 @@ function evaluate(obs) {
       code: 'logs.errors',
       category: 'logs',
       severity: 'warn',
-      title: `运行日志里有 ${errLines.length} 条错误`,
-      hint: '最近一次运行留下了错误记录，展开诊断报告可以看到完整上下文。',
+      title: `There are ${errLines.length} error(s) in the runtime log`,
+      hint: 'The most recent run left error records. Expand the diagnostic report to see the full context.',
       detail: errLines.slice(-1)[0],
       fix: 'report',
     });
@@ -352,8 +352,8 @@ function evaluate(obs) {
       code: 'accel.softwareEmulation',
       category: 'runtime',
       severity: 'warn',
-      title: '当前没有硬件加速',
-      hint: '只能跑纯软件模拟，开机慢到几分钟、画面也容易掉帧。开启「Windows 虚拟机监控程序平台」后重启即可。',
+      title: 'No hardware acceleration at present',
+      hint: 'Only pure software emulation can run, so booting takes minutes and the picture drops frames easily. Enable Windows Hypervisor Platform and restart.',
       detail: accel.note || '',
       fix: 'virtualization',
     });
@@ -417,7 +417,7 @@ function groupByCategory(issues) {
 
 /**
  * 对比两次检测结果：找出「新出现」和「已消失」的问题。
- * 自动检测只在新问题出现时提醒用户，已消失的只做静默记账 ——
+ * 自动检测只在新问题出现时提醒用户，已消失的只做静默记账  - 
  * 每次都弹「已恢复 3 项」会变成噪音。
  */
 function diff(prevIssues, nextIssues) {

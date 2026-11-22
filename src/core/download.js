@@ -14,7 +14,7 @@ const UA = 'ApkStart/0.2 (Windows; +https://github.com/apkstart)';
 
 /**
  * 校验服务器返回的 Content-Range 是否与本次请求一致。
- * 断点续传/分块下载最怕「服务器不认 Range、从头发整包」或「返回了别的文件的分块」——
+ * 断点续传/分块下载最怕「服务器不认 Range、从头发整包」或「返回了别的文件的分块」 - 
  * 直接写进目标文件会拼出看似完整、实则损坏的包。这里逐项比对起止位、总大小和
  * Content-Length，有任何不符就拒绝，交给上层换源/重来。
  */
@@ -29,7 +29,7 @@ function validRange(res, start, end, total) {
 
 function openStream(url, { method = 'GET', headers = {}, redirects = 0 } = {}) {
   return new Promise((resolve, reject) => {
-    if (redirects > 6) return reject(new Error('重定向次数过多'));
+    if (redirects > 6) return reject(new Error('Too many redirects'));
     const u = new URL(url);
     const mod = u.protocol === 'http:' ? http : https;
     const req = mod.request(url, {
@@ -45,7 +45,7 @@ function openStream(url, { method = 'GET', headers = {}, redirects = 0 } = {}) {
       resolve(res);
     });
     req.on('error', reject);
-    req.on('timeout', () => { req.destroy(new Error('连接超时')); });
+    req.on('timeout', () => { req.destroy(new Error('Connection timed out')); });
     req.end();
   });
 }
@@ -122,13 +122,13 @@ async function download(url, dest, opt = {}) {
         discardPartial(dest);
         continue;
       }
-      throw new Error('无法验证续传文件，服务器返回 HTTP 416');
+      throw new Error('Cannot verify the partial file for resuming: the server returned HTTP 416');
     }
     if (res.statusCode !== 200 && res.statusCode !== 206) {
       res.resume();
       if (attempt <= retries) { await new Promise((r) => setTimeout(r, 1500)); continue; }
       discardPartial(dest);   // 重试耗尽：别把坏文件留给下次续传
-      throw new Error(`下载失败 HTTP ${res.statusCode}: ${url}`);
+      throw new Error(`Download failed HTTP ${res.statusCode}: ${url}`);
     }
 
     if (res.statusCode === 206) {
@@ -136,7 +136,7 @@ async function download(url, dest, opt = {}) {
       if (!m || !validRange(res, existing, Number(m[2]), Number(m[3])) || Number(m[2]) !== Number(m[3]) - 1) {
         res.resume();
         discardPartial(dest);
-        throw new Error('服务器返回了不匹配的续传范围');
+        throw new Error('The server returned a resume range that does not match');
       }
     }
 
@@ -175,12 +175,12 @@ async function download(url, dest, opt = {}) {
           if (idle) clearTimeout(idle);
           idle = setTimeout(() => {
             res.destroy();
-            finish(new Error('连接停滞（长时间无数据）'));
+            finish(new Error('Connection stalled (no data for a long time)'));
           }, idleMs);
         };
         kick();
 
-        const onAbort = () => { res.destroy(new Error('已取消')); };
+        const onAbort = () => { res.destroy(new Error('Cancelled')); };
         if (signal) signal.addEventListener('abort', onAbort, { once: true });
 
         res.on('data', (c) => {
@@ -203,7 +203,7 @@ async function download(url, dest, opt = {}) {
         ws.on('finish', () => finish());
         ws.on('error', (e) => finish(e));
         res.on('error', (e) => finish(e));
-        res.on('close', () => { if (!res.complete) finish(new Error('连接被中断')); });
+        res.on('close', () => { if (!res.complete) finish(new Error('Connection interrupted')); });
       });
     } catch (e) {
       // 中断 / 超时 / 写盘失败：半截文件留着只会让下次续传继续失败
@@ -222,13 +222,13 @@ async function download(url, dest, opt = {}) {
     const actual = await sha256File(dest);
     if (actual.toLowerCase() !== expectSha256.toLowerCase()) {
       discardPartial(dest);
-      throw new Error(`校验失败：期望 ${expectSha256.slice(0, 12)}… 实际 ${actual.slice(0, 12)}…`);
+      throw new Error(`Verification failed: expected ${expectSha256.slice(0, 12)}... actual ${actual.slice(0, 12)}...`);
     }
   }
   return { file: dest, size: fs.statSync(dest).size };
   } catch (e) {
     // openStream 直接 reject（连接被拒 / DNS 失败 / 超时）时不会进入写流那段
-    // try/catch —— 以前这里什么都不清，半截文件留着让下次续传继续失败。
+    // try/catch  -  以前这里什么都不清，半截文件留着让下次续传继续失败。
     // 统一在最外层兜住：任何抛出都先丢弃残余。
     discardPartial(dest);
     throw e;
@@ -309,11 +309,11 @@ async function downloadParallel(url, dest, opt = {}) {
     const res = await openStream(url, { headers: { Range: `bytes=${c.pos}-${c.end}` } });
     if (res.statusCode !== 206) {
       res.resume();
-      throw new Error(`分块请求被拒绝 HTTP ${res.statusCode}`);
+      throw new Error(`Chunk request rejected HTTP ${res.statusCode}`);
     }
     if (!validRange(res, c.pos, c.end, total)) {
       res.resume();
-      throw new Error('服务器返回了不匹配的分块范围');
+      throw new Error('The server returned a chunk range that does not match');
     }
     await new Promise((resolve, reject) => {
       // 必须自己兜住「promise 永远不 settle」：res.destroy(err) 在某些情况下只发
@@ -325,17 +325,17 @@ async function downloadParallel(url, dest, opt = {}) {
         clearTimeout(idle);
         if (err) reject(err); else resolve();
       };
-      let idle = setTimeout(() => { res.destroy(); finish(new Error('连接停滞（长时间无数据）')); }, idleMs);
+      let idle = setTimeout(() => { res.destroy(); finish(new Error('Connection stalled (no data for a long time)')); }, idleMs);
       const kick = () => {
         clearTimeout(idle);
-        idle = setTimeout(() => { res.destroy(); finish(new Error('连接停滞（长时间无数据）')); }, idleMs);
+        idle = setTimeout(() => { res.destroy(); finish(new Error('Connection stalled (no data for a long time)')); }, idleMs);
       };
       res.on('data', (buf) => {
         // 服务器可能返回超出请求分块范围的数据，多出来的字节会写穿到别的分块，
         // 拼出一个静默损坏的包。宁可判失败换源，不能让它落盘。
         if (buf.length > c.end - c.pos + 1) {
           res.destroy();
-          return finish(new Error('分块响应超出请求范围'));
+          return finish(new Error('The chunk response exceeds the requested range'));
         }
         try {
           fs.writeSync(fd, buf, 0, buf.length, c.pos);
@@ -350,7 +350,7 @@ async function downloadParallel(url, dest, opt = {}) {
       });
       res.on('end', () => finish());
       res.on('error', (e) => finish(e));
-      res.on('close', () => finish(new Error('连接被中断')));
+      res.on('close', () => finish(new Error('Connection interrupted')));
     });
     return c.pos > c.end;
   };
@@ -362,10 +362,10 @@ async function downloadParallel(url, dest, opt = {}) {
           // eslint-disable-next-line no-await-in-loop
           const ok = await fetchChunk(c);
           if (ok) return;
-          throw new Error('分块未完整返回');
+          throw new Error('The chunk was not returned in full');
         } catch (e) {
           c.tries += 1;
-          if (c.tries >= retries) throw new Error(`分块下载失败（${c.start}-${c.end}）：${e.message}`);
+          if (c.tries >= retries) throw new Error(`Chunk download failed (${c.start}-${c.end}): ${e.message}`);
           // eslint-disable-next-line no-await-in-loop
           await new Promise((r) => setTimeout(r, 800 * c.tries));
         }
@@ -382,7 +382,7 @@ async function downloadParallel(url, dest, opt = {}) {
   onProgress({ got: size, total: size, percent: 100, speed: 0, eta: 0 });
   if (size !== total) {
     discardPartial(dest);
-    throw new Error(`下载不完整：${size}/${total} 字节`);
+    throw new Error(`Download incomplete: ${size}/${total} bytes`);
   }
   return { file: dest, size, parallel: n };
 }
@@ -401,7 +401,7 @@ async function downloadAny(urls, dest, opt = {}) {
       discardPartial(dest);
     }
   }
-  throw new Error(`所有下载源均失败：\n${errors.join('\n')}`);
+  throw new Error(`All download sources failed:\n${errors.join('\n')}`);
 }
 
 /**
@@ -427,7 +427,7 @@ async function downloadMulti(urls, dest, opt = {}) {
   const idleMs = Number(opt.idleMs) > 0 ? Number(opt.idleMs) : 20000;
 
   const list = [...new Set((urls || []).filter(Boolean))];
-  if (!list.length) throw new Error('没有可用的下载地址');
+  if (!list.length) throw new Error('No download address is available');
   if (list.length === 1) return downloadParallel(list[0], dest, opt);
 
   // 1) 并行探测：总大小 + 是否支持 Range
@@ -451,7 +451,7 @@ async function downloadMulti(urls, dest, opt = {}) {
   // 基准取**实测最快那个源的总大小**（usable 的顺序就是 rank() 排好的速度序，
   // 探测是 Promise.all 但结果按输入顺序返回）：
   // GitHub 与 Gitee 各自压出来的包字节数不同（差几 MB 很正常），
-  // 以前固定取 Math.max，等于永远去下体积更大的那个源 —— 国内网络下
+  // 以前固定取 Math.max，等于永远去下体积更大的那个源  -  国内网络下
   // 反而是「更快的 Gitee 包被排除、被迫走慢的 GitHub 包」。
   const total = usable[0].total;
   const same = usable.filter((p) => p.total === total);
@@ -533,11 +533,11 @@ async function downloadMulti(urls, dest, opt = {}) {
     const res = await openStream(url, { headers: { Range: `bytes=${c.pos}-${c.end}` } });
     if (res.statusCode !== 206) {
       res.resume();
-      throw new Error(`分块被拒绝 HTTP ${res.statusCode}`);
+      throw new Error(`Chunk rejected HTTP ${res.statusCode}`);
     }
     if (!validRange(res, c.pos, c.end, total)) {
       res.resume();
-      throw new Error('服务器返回了不匹配的分块范围');
+      throw new Error('The server returned a chunk range that does not match');
     }
     const startPos = c.pos;
     const startedAt = Date.now();
@@ -547,7 +547,7 @@ async function downloadMulti(urls, dest, opt = {}) {
     await new Promise((resolve, reject) => {
       // 空闲看门狗 + 「保证 settle」：连接建立了但一个字节都不来（常见的
       // 「TCP 通但被墙/被限」），光等 socket 超时要 30 秒；而 res.destroy(err)
-      // 可能只发 close 不发 error，promise 就永远不会 reject —— 表现是一块挂死、
+      // 可能只发 close 不发 error，promise 就永远不会 reject  -  表现是一块挂死、
       // 整个下载停在那里（实测踩过）。所以看门狗自己调用 finish。
       let settled = false;
       const finish = (err) => {
@@ -556,16 +556,16 @@ async function downloadMulti(urls, dest, opt = {}) {
         clearTimeout(idle);
         if (err) reject(err); else resolve();
       };
-      let idle = setTimeout(() => { res.destroy(); finish(new Error('连接停滞（长时间无数据）')); }, idleMs);
+      let idle = setTimeout(() => { res.destroy(); finish(new Error('Connection stalled (no data for a long time)')); }, idleMs);
       const kick = () => {
         clearTimeout(idle);
-        idle = setTimeout(() => { res.destroy(); finish(new Error('连接停滞（无数据超时）')); }, idleMs);
+        idle = setTimeout(() => { res.destroy(); finish(new Error('Connection stalled (no data, timed out)')); }, idleMs);
       };
       res.on('data', (buf) => {
         // 同上：拒绝超出请求范围的字节，避免静默写坏分块
         if (buf.length > c.end - c.pos + 1) {
           res.destroy();
-          return finish(new Error('分块响应超出请求范围'));
+          return finish(new Error('The chunk response exceeds the requested range'));
         }
         try {
           fs.writeSync(fd, buf, 0, buf.length, c.pos);
@@ -586,13 +586,13 @@ async function downloadMulti(urls, dest, opt = {}) {
             c.rotates = (c.rotates || 0) + 1;
             // 这里不推进 c.src：换源统一由下面的 catch 做，否则一次失败会跳两个源
             res.destroy();
-            finish(new Error(`该源速度过低（${(bps / 1024).toFixed(0)} KB/s），换源重试`));
+            finish(new Error(`This source is too slow (${(bps / 1024).toFixed(0)} KB/s). Switching source and retrying`));
           }
         }
       });
       res.on('end', () => finish());
       res.on('error', (e) => finish(e));
-      res.on('close', () => finish(new Error('连接被中断')));
+      res.on('close', () => finish(new Error('Connection interrupted')));
     });
     return c.pos > c.end;
   };
@@ -607,7 +607,7 @@ async function downloadMulti(urls, dest, opt = {}) {
             saveMeta();
             return;
           }
-          throw new Error('分块未完整返回');
+          throw new Error('The chunk was not returned in full');
         } catch (e) {
           c.tries += 1;
           if (c.tries >= retries) {
@@ -615,7 +615,7 @@ async function downloadMulti(urls, dest, opt = {}) {
             // 拼不出正确字节。整包 + 边车一起作废，下次干净重来。
             // 以前这里只 saveMeta() 保留，结果每次打开都从坏块继续 → 无限重下。
             discardPartial(dest);
-            throw new Error(`分块失败（${c.start}-${c.end}）：${e.message}`);
+            throw new Error(`Chunk failed (${c.start}-${c.end}): ${e.message}`);
           }
           // 换一个源再试：一个镜像抽风不该拖垮整个下载
           c.src += 1;
@@ -636,7 +636,7 @@ async function downloadMulti(urls, dest, opt = {}) {
   tick(true);
   if (size !== total) {
     discardPartial(dest);
-    throw new Error(`下载不完整：${size}/${total} 字节`);
+    throw new Error(`Download incomplete: ${size}/${total} bytes`);
   }
   return { file: dest, size, parallel: n, sources: same.length, multi: true, resumed: resume };
 }
@@ -657,7 +657,7 @@ async function downloadAnyParallel(urls, dest, opt = {}) {
       discardPartial(dest);
     }
   }
-  throw new Error(`所有下载源均失败：\n${errors.join('\n')}`);
+  throw new Error(`All download sources failed:\n${errors.join('\n')}`);
 }
 
 module.exports = {

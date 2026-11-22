@@ -40,7 +40,7 @@ class WinAgent extends EventEmitter {
   ensure() {
     if (this.ready) return this.ready;
     this.ready = new Promise((resolve, reject) => {
-      if (!this.available) { reject(new Error('窗口代理不可用')); return; }
+      if (!this.available) { reject(new Error('Window agent unavailable')); return; }
       let out = '';
       let settled = false;
       const proc = spawn('powershell.exe', [
@@ -73,11 +73,11 @@ class WinAgent extends EventEmitter {
         this.ready = null;
         this.hooked = false;
         this.hookConf = null;
-        this._failAll('窗口代理已退出');
+        this._failAll('Window agent has exited');
         if (wasReady) this.emit('exit');
-        fail(new Error('窗口代理启动失败'));
+        fail(new Error('Window agent failed to start'));
       });
-      setTimeout(() => { if (!settled) fail(new Error('窗口代理启动超时')); }, 15000);
+      setTimeout(() => { if (!settled) fail(new Error('Window agent start timed out')); }, 15000);
     });
     return this.ready;
   }
@@ -92,7 +92,7 @@ class WinAgent extends EventEmitter {
       sock.on('close', () => {
         this.sock = null;
         this.ready = null;
-        this._failAll('窗口代理连接断开');
+        this._failAll('Window agent connection lost');
       });
       this.sock = sock;
       this.buf = '';
@@ -127,9 +127,9 @@ class WinAgent extends EventEmitter {
   /** 发送一条命令并等待回包 */
   async call(obj, timeout = CALL_TIMEOUT) {
     await this.ensure();
-    if (!this.sock) throw new Error('窗口代理未连接');
+    if (!this.sock) throw new Error('Window agent not connected');
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error(`窗口代理超时: ${obj.cmd}`)), timeout);
+      const timer = setTimeout(() => reject(new Error(`Window agent timed out: ${obj.cmd}`)), timeout);
       this.pending.push({ resolve, reject, timer });
       this.sock.write(`${JSON.stringify(obj)}\n`);
     });
@@ -140,7 +140,7 @@ class WinAgent extends EventEmitter {
   /**
    * 声明「哪些目录里的进程才算我们的」。
    * 必须在 bootHide / embed 之前调用：窗口代理只允许碰这些进程创建的窗口。
-   * 不传（或传空）时代理一个窗口都不动 —— 宁可偶尔漏一个黑窗，
+   * 不传（或传空）时代理一个窗口都不动  -  宁可偶尔漏一个黑窗，
    * 也绝不把别的 Qt 应用（微信 4.x 就是 Qt6、MuMu、音乐播放器）的窗口藏掉或嵌进来。
    * @param {string[]} dirs 运行时根目录 / 随包的 engine 目录
    * @param {number} [appPid] 主进程 pid：代理只允许把窗口嵌进这个进程的窗口，
@@ -248,7 +248,7 @@ class WinAgent extends EventEmitter {
   /**
    * 把头号可疑窗口「摘下 + 藏好」。
    * 宿主窗口销毁前必须调用：Windows 会在父窗口销毁时把跨进程的子窗口重新挂到桌面，
-   * 并保持它原来的可见状态 —— 桌面上凭空多出来的 Android Emulator 黑窗就是这么来的。
+   * 并保持它原来的可见状态  -  桌面上凭空多出来的 Android Emulator 黑窗就是这么来的。
    * 代理很忙（可能在编译 C#）时也不能拖着不关窗，所以这里给 700ms 硬上限。
    */
   async park(maxWaitMs = 700) {

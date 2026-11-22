@@ -40,13 +40,13 @@ test('每个主题的锚点都存在于随包 HTML', () => {
 
 test('手册正文包含 0.6.3 版本号与声音章节', () => {
   assert(html.includes('v0.6.3'), '手册应标注 v0.6.3');
-  assert(html.includes('应用没有声音'), '手册应有声音排障章节');
-  assert(html.includes('内置使用手册与自动教程'), '手册应说明自动教程');
+  assert(html.includes('Apps Have No Sound'), '手册应有声音排障章节');
+  assert(html.includes('Built In User Manual and Automatic Tutorials'), '手册应说明自动教程');
 });
 
 test('手册有 6.8 商店版 DLL 加载失败章节，且纠正一刀切误判', () => {
-  assert(html.includes('商店版启动失败'), '手册应有 6.8 章节');
-  assert(/不等于.*VC\+\+|不等于.*运行库|不等于.*杀毒/.test(html.replace(/<[^>]+>/g, '')),
+  assert(html.includes('Store Edition Fails to Start'), '手册应有 6.8 章节');
+  assert(/not necessarily mean.*VC\+\+|not necessarily mean.*runtime|not necessarily mean.*antivirus/.test(html.replace(/<[^>]+>/g, '')),
     '6.8 应明确 0xC0000135 不等于一定缺 VC++');
 });
 
@@ -152,9 +152,9 @@ test('诊断条目带教程按钮', () => {
 test('0xC0000135 不再被一刀切成杀毒删 DLL / 缺 VC++', () => {
   const doctor = fs.readFileSync(path.join(ROOT, 'src', 'core', 'doctor.js'), 'utf8');
   const emu = fs.readFileSync(path.join(ROOT, 'src', 'core', 'emulator.js'), 'utf8');
-  assert(!/title: '运行时组件被杀毒软件删除或缺少 VC\+\+ 运行库'/.test(doctor), 'doctor 仍在静态归因杀毒/VC++');
-  assert(!/缺少 DLL（VC\+\+ 运行库 \/ 运行时组件被杀毒删除）/.test(emu), 'emulator 退出码描述仍在一刀切');
-  assert(/原因待查/.test(emu) && /具体原因待定位/.test(doctor), '应标明原因待定位');
+  assert(!/title: 'Runtime components were deleted by antivirus software or the VC\+\+ runtime is missing'/.test(doctor), 'doctor 仍在静态归因杀毒/VC++');
+  assert(!/Missing DLL \(VC\+\+ runtime \/ runtime components deleted by antivirus\)/.test(emu), 'emulator 退出码描述仍在一刀切');
+  assert(/cause to be checked/.test(emu) && /exact cause still to be located/.test(doctor), '应标明原因待定位');
 });
 
 console.log(`\n内置手册测试：${passed} 通过，${failed} 失败\n`);

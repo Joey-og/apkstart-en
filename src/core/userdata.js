@@ -5,7 +5,7 @@
  * 为什么需要它（踩过的坑，别再重复）：
  * 1. 系统镜像包（system-images/.../userdata.img）里带的其实是一个 1MB 全零占位
  *    文件，真正的格式化应该由 avdmanager 调 SDK 的 mke2fs 完成。ApkStart 是直接
- *    写 config.ini 拉起 emulator 的，跳过了那一步 —— 于是 /data 一直是全零，
+ *    写 config.ini 拉起 emulator 的，跳过了那一步  -  于是 /data 一直是全零，
  *    内核报 "Invalid ext4 superblock on /dev/block/vdc"，guest 掉进
  *    recovery 重启循环，adbd 永远不上线。表现就是「点开应用等好几分钟最后失败」。
  *    （emulator 只带 e2fsck/resize2fs/tune2fs，**不带 mke2fs**，所以它自己也不会格式化。）
@@ -40,7 +40,7 @@ const RO_COMPAT_LARGE_FILE = 0x2;
 
 /**
  * @param {{sizeMB?: number, encrypt?: boolean}} [opts]
- *   encrypt=false 时不带 ENCRYPT 位 —— 只用于「先让 emulator 自带的
+ *   encrypt=false 时不带 ENCRYPT 位  -  只用于「先让 emulator 自带的
  *   e2fsck/resize2fs（1.42.12，不认识 encrypt）先把文件系统扩到分区大小」，
  *   之后再把这个位补回去。
  * @returns {Buffer} 可直接写成 userdata 镜像的字节
@@ -190,7 +190,7 @@ function hasExt4Superblock(file) {
 /**
  * 把 ENCRYPT（fscrypt）特性位补回超级块。
  * 顺序很重要：必须先让 emulator 自带的 resize2fs 把文件系统扩到分区大小，
- * 再补这个位 —— 那套 cygwin 版 e2fsprogs 是 1.42.12，不认识 encrypt，
+ * 再补这个位  -  那套 cygwin 版 e2fsprogs 是 1.42.12，不认识 encrypt，
  * 带着这个位 e2fsck/resize2fs 会直接拒绝执行。
  */
 function setEncryptFlag(file) {
@@ -226,7 +226,7 @@ function clearEncryptFlag(file) {
  * 读文件系统**自身**的容量（字节）。
  * 关键用途：镜像文件被 qemu-img 撑到 8GB，不代表里面的 ext4 也长到了 8GB。
  * 如果 resize2fs 没跑成功（老版本 qemu-img 参数顺序写错就会这样），
- * 文件看着有 6GB、安卓却只有 64MB 可用 —— 表现正是「装游戏/更新时空间不足」。
+ * 文件看着有 6GB、安卓却只有 64MB 可用  -  表现正是「装游戏/更新时空间不足」。
  * 这里直接读超级块的块数与块大小，判断要不要补一次 resize2fs。
  */
 function fsBytes(file) {

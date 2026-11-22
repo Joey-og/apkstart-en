@@ -18,8 +18,8 @@ const { lookup, toCommand } = require('./keymap');
 class KeymapEngine {
   /**
    * @param {object} opts
-   * @param {Function} opts.execInput  (cmd) => Promise — 发送 adb shell input 命令
-   * @param {Function} opts.getSize    () => {width, height} — 当前 LCD 尺寸
+   * @param {Function} opts.execInput  (cmd) => Promise - 发送 adb shell input 命令
+   * @param {Function} opts.getSize    () => {width, height} - 当前 LCD 尺寸
    * @param {number}   [opts.minInterval=50]  两条命令之间的最小间隔（ms）
    */
   constructor({ execInput, getSize, minInterval = 50 } = {}) {
